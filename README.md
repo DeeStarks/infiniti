@@ -2,11 +2,11 @@
 
 Inifiniti is a bank app that allows for the management of bank accounts and transactions. NB: This is an open source project meant for practice purposes.
 
-[]: # Architecture: Hexagonal
-[]: # Language: Go
-[]: # Containerization: Docker
-[]: # Database: Postgres
-[]: # Command Management: Makefile
+- Architecture: Hexagonal
+- Language: Go
+- Containerization: Docker
+- Database: Postgres
+- Command Management: Makefile
 
 
 ### Setup
