@@ -1,21 +1,27 @@
-SERVER_CONTAINER := infiniti-server
-LINE_THROUGH := "=============================================================="
+SERVER_CONTAINER = infiniti-server
+LINE_THROUGH = "=============================================================="
 
 PKG := -d -v ./...
 
 docker-build:
 	@docker build -t infiniti-bank . && \
-	if [ ! "$(docker ps -q -f name=^$(SERVER_CONTAINER)$)" ]; then \
-		echo "$(LINE_THROUGH)\nContainer already exists, removing...\n$(LINE_THROUGH)"; \
-		docker stop $(SERVER_CONTAINER) && \
+	if [ "${shell docker ps -aq -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		echo "$(LINE_THROUGH)\nContainer already exists, removing..."; \
 		docker rm $(SERVER_CONTAINER); \
 	fi; \
-	echo "$(LINE_THROUGH)\nCreating container...\n$(LINE_THROUGH)"; \
+	echo "$(LINE_THROUGH)\nCreating container..."; \
 	docker container create --name=$(SERVER_CONTAINER) --volume=$(PWD):/infiniti/ infiniti-bank && \
 	docker start $(SERVER_CONTAINER) && \
-	echo "$(LINE_THROUGH)\nInstalling dependencies\n$(LINE_THROUGH)"; \
-	make install; \
+	echo "$(LINE_THROUGH)\nInstalling dependencies..."; \
+	make install && \
+	echo "Done!\n$(LINE_THROUGH)"; \
 	make stop
+
+docker-logs:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker logs $(SERVER_CONTAINER)
 
 start:
 	@docker start $(SERVER_CONTAINER); \
@@ -25,16 +31,26 @@ start:
 		echo "$(LINE_THROUGH)"; \
 		make stop
 
+
 stop:
 	@echo "Stopping $(SERVER_CONTAINER)" \
 		&& docker stop $(SERVER_CONTAINER)
 
 install:
-	@docker exec $(SERVER_CONTAINER) go get $(PKG)
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) go get $(PKG)
 
 build:
-	@docker exec $(SERVER_CONTAINER) go build -o /infiniti/bin/infiniti /infiniti/cmd/main.go && \
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) go build -o /infiniti/bin/infiniti /infiniti/cmd/main.go && \
 		docker restart $(SERVER_CONTAINER)
 
 tidy:
-	@docker exec $(SERVER_CONTAINER) go mod tidy
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) go mod tidy
