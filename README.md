@@ -19,3 +19,5 @@ NB: Make sure to have docker installed and running.
 - `make start` # This will start the docker container.
 - `make stop` # To stop the docker container.
 - `make build` # Builds the application into the `bin/infiniti` binary.
+- `make install` # Installs all used dependencies in the application.
+- `make install PKG=<dependency>` # Installs a specific dependency. (e.g. `make install PKG=github.com/gorilla/mux`)
