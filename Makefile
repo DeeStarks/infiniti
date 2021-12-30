@@ -2,6 +2,7 @@ SERVER_CONTAINER = infiniti-server
 LINE_THROUGH = "=============================================================="
 
 PKG := -d -v ./...
+CMD := echo "Specify a command to run"
 
 docker-build:
 	@docker build -t infiniti-bank . && \
@@ -31,6 +32,11 @@ start:
 		echo "$(LINE_THROUGH)"; \
 		make stop
 
+shell:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) $(CMD)
 
 stop:
 	@echo "Stopping $(SERVER_CONTAINER)" \
