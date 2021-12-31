@@ -21,3 +21,5 @@ NB: Make sure to have docker installed and running.
 - `make build` # Builds the application into the `bin/infiniti` binary.
 - `make install` # Installs all used dependencies in the application.
 - `make install PKG=<dependency>` # Installs a specific dependency. (e.g. `make install PKG=github.com/gorilla/mux`)
+- `make tidy` # Equivalent to `go mod tidy`, but in the docker container.
+- `make shell CMD="<command>"` # Executes commands directly in the docker container. (e.g. `make shell CMD="go run cmd/main.go"`)
