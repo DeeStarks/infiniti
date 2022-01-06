@@ -1,7 +1,12 @@
 SERVER_CONTAINER = infiniti-server
+DB_CONTAINER = infiniti-db
 LINE_THROUGH = "=============================================================="
 
 PKG := -d -v ./...
+DB_NAME := infiniti
+DB_USER := postgres
+DB_PASS := infiniti
+
 CMD := echo "Specify a command to run"
 
 docker-build:
@@ -15,8 +20,29 @@ docker-build:
 	docker start $(SERVER_CONTAINER) && \
 	echo "$(LINE_THROUGH)\nInstalling dependencies..."; \
 	make install && \
+	make db-setup && \
 	echo "Done!\n$(LINE_THROUGH)"; \
 	make stop
+
+db-setup:
+	@if [ -z "${shell docker ps -a -q -f name=^$(DB_CONTAINER)$}" ]; then \
+		echo "$(LINE_THROUGH)\nSetting up database..."; \
+		docker pull postgres:12.2-alpine && \
+		docker run --name=$(DB_CONTAINER) -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASS) -e POSTGRES_DB=$(DB_NAME) -d postgres:12.2-alpine && \
+		docker stop infiniti-db && \
+		echo "Database setup complete!\n$(LINE_THROUGH)"; \
+	else \
+		echo "$(LINE_THROUGH)\nDatabase already exists, skipping setup...\n$(LINE_THROUGH)"; \
+	fi
+
+db-shell:
+	@echo "$(LINE_THROUGH)\nOpening database shell..."; \
+		if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
+			docker start $(DB_CONTAINER); \
+		fi && \
+		docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) && \
+		docker stop $(DB_CONTAINER) && \
+		echo "Database shell closed!\n$(LINE_THROUGH)"
 
 docker-logs:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
@@ -25,7 +51,8 @@ docker-logs:
 	docker logs $(SERVER_CONTAINER)
 
 start:
-	@docker start $(SERVER_CONTAINER); \
+	@docker start $(DB_CONTAINER) && \
+		docker start $(SERVER_CONTAINER); \
 		docker exec $(SERVER_CONTAINER) go build -o /infiniti/bin/infiniti /infiniti/cmd/main.go && \
 	    echo "$(LINE_THROUGH)"; \
 		docker exec $(SERVER_CONTAINER) /infiniti/bin/infiniti; \
@@ -39,8 +66,11 @@ shell:
 	docker exec $(SERVER_CONTAINER) $(CMD)
 
 stop:
-	@echo "Stopping $(SERVER_CONTAINER)" \
-		&& docker stop $(SERVER_CONTAINER)
+	@echo "Stopping $(SERVER_CONTAINER)..." \
+		&& docker stop $(SERVER_CONTAINER); \
+		echo "Stopping $(DB_CONTAINER)..." \
+		&& docker stop $(DB_CONTAINER); \
+		echo "Done!\n$(LINE_THROUGH)"
 
 install:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
