@@ -2,7 +2,9 @@ FROM golang:1.17
 
 RUN apt-get -y update && \
     apt-get -y upgrade
-
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest && \
+    migrate --version
+    
 WORKDIR /infiniti
 VOLUME ${PWD}:/infiniti
 
