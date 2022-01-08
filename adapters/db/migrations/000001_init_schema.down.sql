@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS "public"."group_permissions" CASCADE;
+DROP TABLE IF EXISTS "public"."user_groups" CASCADE;
+DROP TABLE IF EXISTS "public"."user_accounts" CASCADE;
+DROP TABLE IF EXISTS "public"."db_tables" CASCADE;
+DROP TABLE IF EXISTS "public"."account_types" CASCADE;
+DROP TABLE IF EXISTS "public"."currencies" CASCADE;
+DROP TABLE IF EXISTS "public"."user_permissions" CASCADE;
+DROP TABLE IF EXISTS "public"."user_transactions" CASCADE;
+DROP TABLE IF EXISTS "public"."permissions" CASCADE;
+DROP TABLE IF EXISTS "public"."transaction_types" CASCADE;
+DROP TABLE IF EXISTS "public"."groups" CASCADE;
+DROP TABLE IF EXISTS "public"."users" CASCADE;
