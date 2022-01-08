@@ -3,9 +3,12 @@ DB_CONTAINER = infiniti-db
 LINE_THROUGH = "=============================================================="
 
 PKG := -d -v ./...
+
 DB_NAME := infiniti
 DB_USER := postgres
 DB_PASS := infiniti
+
+MIGRATION_NAME := $(shell date +%Y%m%d%H%M%S)
 
 docker-build:
 	@docker build -t infiniti-bank . ; \
@@ -20,6 +23,12 @@ docker-build:
 	make db-setup && \
 	echo "Done!\n$(LINE_THROUGH)"; \
 	make stop
+
+docker-logs:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker logs $(SERVER_CONTAINER)
 
 db-setup:
 	@if [ -z "${shell docker ps -a -q -f name=^$(DB_CONTAINER)$}" ]; then \
@@ -40,12 +49,6 @@ db-shell:
 		docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) && \
 		docker stop $(DB_CONTAINER) && \
 		echo "Database shell closed!\n$(LINE_THROUGH)"
-
-docker-logs:
-	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
-		docker start $(SERVER_CONTAINER); \
-	fi && \
-	docker logs $(SERVER_CONTAINER)
 
 start:
 	@docker start $(DB_CONTAINER) && \
@@ -87,3 +90,27 @@ tidy:
 		docker start $(SERVER_CONTAINER); \
 	fi && \
 	docker exec $(SERVER_CONTAINER) go mod tidy
+
+create-migrations:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) migrate create -ext sql -dir /infiniti/adapters/db/migrations -seq $(MIGRATION_NAME)
+
+migrate-up:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
+		docker start $(DB_CONTAINER); \
+	fi && \
+	docker exec $(SERVER_CONTAINER) migrate -path /infiniti/adapters/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@host.docker.internal:5432/$(DB_NAME)?sslmode=disable" -verbose up
+
+migrate-down:
+	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
+		docker start $(SERVER_CONTAINER); \
+	fi && \
+	if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
+		docker start $(DB_CONTAINER); \
+	fi && \
+	docker exec -it $(SERVER_CONTAINER) migrate -path /infiniti/adapters/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@host.docker.internal:5432/$(DB_NAME)?sslmode=disable" -verbose down
