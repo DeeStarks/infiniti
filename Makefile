@@ -7,19 +7,16 @@ DB_NAME := infiniti
 DB_USER := postgres
 DB_PASS := infiniti
 
-CMD := echo "Specify a command to run"
-
 docker-build:
-	@docker build -t infiniti-bank . && \
+	@docker build -t infiniti-bank . ; \
 	if [ "${shell docker ps -aq -f name=^$(SERVER_CONTAINER)$}" ]; then \
 		echo "$(LINE_THROUGH)\nContainer already exists, removing..."; \
 		docker rm $(SERVER_CONTAINER); \
 	fi; \
 	echo "$(LINE_THROUGH)\nCreating container..."; \
 	docker container create --name=$(SERVER_CONTAINER) --volume=$(PWD):/infiniti/ infiniti-bank && \
-	docker start $(SERVER_CONTAINER) && \
 	echo "$(LINE_THROUGH)\nInstalling dependencies..."; \
-	make install && \
+	make install; \
 	make db-setup && \
 	echo "Done!\n$(LINE_THROUGH)"; \
 	make stop
@@ -63,7 +60,7 @@ shell:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
 		docker start $(SERVER_CONTAINER); \
 	fi && \
-	docker exec $(SERVER_CONTAINER) $(CMD)
+	docker exec -it $(SERVER_CONTAINER) /bin/bash
 
 stop:
 	@echo "Stopping $(SERVER_CONTAINER)..." \
