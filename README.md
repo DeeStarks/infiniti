@@ -1,6 +1,6 @@
 # INFINITI
 
-Infiniti is a bank application that follows the hexagonal architecture, to design a system for managing accounts and user transactions. NB: This is for practice purposes only.
+Infiniti is a bank application for user accounts and transactions management. The system is designed on the basis of the Hexagonal Architecture.
 
 ### Setup
 
@@ -16,7 +16,7 @@ NB: Make sure to have docker installed and running. For docker installation, see
 ### Commands
 1. `make docker-build` - Builds the docker image, and automatically installs all dependencies and sets up the database.
 2. `make db-setup` - Creates the database with `DB_NAME=infiniti DB_USER=postgres DB_PASS=infiniti`. To change these values, pass them as arguments to the command (e.g. `make db-setup DB_NAME=example_db DB_USER=example_user DB_PASS=example_password`). NB: You might not need to run this command because the `make docker-build` command will create the database automatically. And if you need to specify the database name, user, and password, you can also do so by passing them as arguments to the command (e.g. `make docker-build DB_NAME=example_db DB_USER=example_user DB_PASS=example_password`).
-3. `make create-migrations` - Creates the migrations files for up and down in the `adapters/db/migrations`. Default name is a timestamp in format `YYYYMMDDHHMMSS`. To specify a different name, pass it as an argument to the command (e.g. `make create-migrations MIGRATION_NAME=example_name`).
+3. `make create-migrations` - Creates the migrations files for up and down in the `adapters/framework/db/migrations`. Default name is a timestamp in format `YYYYMMDDHHMMSS`. To specify a different name, pass it as an argument to the command (e.g. `make create-migrations MIGRATION_NAME=example_name`).
 4. `make migrate-up` - Runs all `*.up.sql` migration files sequentially. NB: Pass the database credentials `DB_NAME, DB_USER, DB_PASS` as arguments if using a custom database name, user, or password.
 5. `make migrate-down` - Same as `make migrate-up` but runs `*.down.sql` files in reverse order.
 6. `make start` - Starts the app.
