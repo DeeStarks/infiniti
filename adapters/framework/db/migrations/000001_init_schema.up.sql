@@ -1,6 +1,6 @@
 CREATE TABLE "db_tables" (
   "id" bigserial PRIMARY KEY,
-  "table_name" varchar NOT NULL
+  "table_name" varchar NOT NULL UNIQUE
 );
 
 CREATE TABLE "permissions" (
@@ -135,3 +135,25 @@ CREATE INDEX ON "user_transactions" ("transaction_type_id");
 CREATE INDEX ON "user_transactions" ("sender_id");
 
 CREATE INDEX ON "user_transactions" ("reciever_id");
+
+INSERT INTO "db_tables" ("table_name") VALUES ('permissions');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('users');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('user_permissions');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('groups');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('group_permissions');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('user_groups');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('currencies');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('account_types');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('user_accounts');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('transaction_types');
+
+INSERT INTO "db_tables" ("table_name") VALUES ('user_transactions');
