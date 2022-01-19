@@ -44,17 +44,20 @@ db-setup:
 db-shell:
 	@echo "$(LINE_THROUGH)\nOpening database shell..."; \
 		if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
-			docker start $(DB_CONTAINER); \
+			docker start $(DB_CONTAINER) && \
+			docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME); \
+		else \
+			docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME); \
 		fi && \
-		docker exec -it $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) && \
 		docker stop $(DB_CONTAINER) && \
 		echo "Database shell closed!\n$(LINE_THROUGH)"
 
 start:
 	@docker start $(DB_CONTAINER) && \
-		docker start $(SERVER_CONTAINER); \
+		docker start $(SERVER_CONTAINER) && \
 		docker exec $(SERVER_CONTAINER) go build -o /infiniti/bin/infiniti /infiniti/cmd/main.go && \
 	    echo "$(LINE_THROUGH)"; \
+		make tidy && \
 		docker exec $(SERVER_CONTAINER) /infiniti/bin/infiniti; \
 		echo "$(LINE_THROUGH)"; \
 		make stop
