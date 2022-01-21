@@ -9,4 +9,5 @@ type DBPort interface {
 	
 	// Add models here
 	NewUserModel() *db.UserModel // CRUD operations on users
+	NewPermissionsModel() *db.PermissionsModel // CRUD operations on permissions
 }
