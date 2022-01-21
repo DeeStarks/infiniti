@@ -3,10 +3,12 @@ CREATE TABLE "db_tables" (
   "table_name" varchar NOT NULL UNIQUE
 );
 
+CREATE TYPE methods AS ENUM ('get', 'post', 'put', 'delete');
+
 CREATE TABLE "permissions" (
   "id" bigserial PRIMARY KEY,
   "table_id" int NOT NULL,
-  "method" varchar NOT NULL
+  "method" methods NOT NULL
 );
 
 CREATE TABLE "users" (
