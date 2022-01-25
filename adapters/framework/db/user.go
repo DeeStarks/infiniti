@@ -6,34 +6,34 @@ import (
 )
 
 type (
-	User struct {
+	UserModel struct {
 		Id 			int 	`json:"id"`
 		Username 	string 	`json:"username"`
 		Email 		string 	`json:"email"`
 		Password 	string 	`json:"password"`
 	}
 	
-	UserModel struct {
+	UserAdapter struct {
 		adapter		*DBAdapter
 		tableName	string
 	}
 )
 
-func (adpt *DBAdapter) NewUserModel() *UserModel {
-	return &UserModel{
+func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
+	return &UserAdapter{
 		adapter: adpt,
 		tableName: "users",
 	}
 }
 
-// Define the methods of the UserModel
-func (model *UserModel) Get(col string, value interface{}) (*User, error) {
-	var user User
+// Define the methods of the UserAdapter
+func (userAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
+	var user UserModel
 	query := fmt.Sprintf(`
 		SELECT id, username, email, password FROM %s
 		WHERE %s = $1
-	`, model.tableName, col)
-	err := model.adapter.db.QueryRow(query, value).Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+	`, userAdpt.tableName, col)
+	err := userAdpt.adapter.db.QueryRow(query, value).Scan(&user.Id, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -41,13 +41,13 @@ func (model *UserModel) Get(col string, value interface{}) (*User, error) {
 	return &user, nil
 }
 
-func (model *UserModel) Filter(col string, value interface{}) (*[]User, error) {
-	var users []User
+func (userAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
+	var users []UserModel
 	query := fmt.Sprintf(`
 		SELECT id, username, email, password FROM %s
 		WHERE %s = $1
-	`, model.tableName, col)
-	rows, err := model.adapter.db.Query(query, value)
+	`, userAdpt.tableName, col)
+	rows, err := userAdpt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -55,7 +55,7 @@ func (model *UserModel) Filter(col string, value interface{}) (*[]User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user User
+		var user UserModel
 		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
 		if err != nil {
 			log.Fatal(err)
@@ -66,17 +66,17 @@ func (model *UserModel) Filter(col string, value interface{}) (*[]User, error) {
 	return &users, nil
 }
 
-func (model *UserModel) All() (*[]User, error) {
-	var users []User
-	query := "SELECT id, username, email, password FROM " + model.tableName
-	rows, err := model.adapter.db.Query(query)
+func (userAdpt *UserAdapter) All() (*[]UserModel, error) {
+	var users []UserModel
+	query := "SELECT id, username, email, password FROM " + userAdpt.tableName
+	rows, err := userAdpt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var user User
+		var user UserModel
 		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
 		if err != nil {
 			log.Fatal(err)
