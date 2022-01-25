@@ -8,9 +8,16 @@ import (
 
 type (
 	PermissionsModel struct {
+		Id			int 	`json:"id"`
+		TableId		int 	`json:"table_id"`
+		Method		string 	`json:"method"`
+	}
+
+	PermissionsAdapter struct {
 		adapter		*DBAdapter
 		tableName	string
 	}
+
 	_permissionsEnum struct {
 		Get, Create, Update, Delete 	string
 	}
@@ -25,16 +32,19 @@ func PermissionsEnum() _permissionsEnum {
 	}
 }
 
-func (adpt *DBAdapter) NewPermissionsModel() *PermissionsModel {
-	return &PermissionsModel{
+func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
+	return &PermissionsAdapter{
 		adapter: adpt,
 		tableName: "permissions",
 	}
 }
 
-func (model *PermissionsModel) Create(data map[string]interface{}) error {
-	colStr := ""
-	var valArr []interface{}
+func (permAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
+	var (
+		modelObj	 	PermissionsModel
+		colStr			string
+		valArr 			[]interface{}
+	)
 
 	for col, val := range data {
 		colStr += col + ", "
@@ -42,13 +52,27 @@ func (model *PermissionsModel) Create(data map[string]interface{}) error {
 	}
 	colStr = colStr[:len(colStr)-2] // remove the last ", "
 	
-	_, err := model.adapter.db.Exec(fmt.Sprintf(`
-		INSERT INTO %s ( %s ) VALUES ( %s )
-	`, model.tableName, colStr, pkg.CreatePlaceholder(len(valArr))), valArr...)
-
+	dbTx, err := permAdpt.adapter.db.Begin()
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
-	return nil
+
+	prepQuery, err := dbTx.Prepare(fmt.Sprintf(`
+		INSERT INTO %s ( %s ) VALUES ( %s )
+		RETURNING id, table_id, method
+	`, permAdpt.tableName, colStr, pkg.CreatePlaceholder(len(valArr))))
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer prepQuery.Close()
+	prepQuery.QueryRow(valArr...).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+
+	err = dbTx.Commit()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &modelObj, nil
 }
