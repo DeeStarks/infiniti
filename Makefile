@@ -60,7 +60,7 @@ test:
 	@docker start $(DB_CONTAINER) && \
 		docker start $(SERVER_CONTAINER) && \
 		echo "$(LINE_THROUGH)\nRunning tests..."; \
-		docker exec $(SERVER_CONTAINER) go test $(TESTDIR)/... && \
+		docker exec $(SERVER_CONTAINER) go test -v $(TESTDIR)/... && \
 		echo "Tests complete!\n$(LINE_THROUGH)"; \
 		make stop
 
