@@ -98,3 +98,21 @@ func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*Per
 	}
 	return &modelObj, nil
 }
+
+func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*PermissionsModel, error) {
+	var (
+		modelObj	PermissionsModel
+		err			error
+	)
+	query := fmt.Sprintf(`
+		SELECT id, table_id, method
+		FROM %s
+		WHERE %s = $1
+	`, pAdpt.tableName, colName)
+	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &modelObj, nil
+}
