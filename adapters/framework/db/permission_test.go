@@ -3,9 +3,14 @@ package db
 import (
 	"fmt"
 	"testing"
+
+	"github.com/deestarks/infiniti/config"
 )
 
 func TestCreate(t *testing.T) {
+	// Load the environment variables
+	config.LoadEnv("../../../.env")
+
 	var createdIds string
 	var tests = []struct {
 		table_id	int
@@ -17,7 +22,7 @@ func TestCreate(t *testing.T) {
 		{1, PermissionsEnum().Delete},
 	}
 
-	dbAdapter, err := NewDBAdapter("postgres", "postgresql://postgres:infiniti@localhost:5432/infiniti?sslmode=disable")
+	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@localhost:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_NAME")))
 	if err != nil {
 		t.Error(err)
 	}
@@ -47,6 +52,9 @@ func TestCreate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	// Load the environment variables
+	config.LoadEnv("../../../.env")
+
 	var tests = []struct {
 		table_id	int
 		method		string
@@ -57,7 +65,7 @@ func TestDelete(t *testing.T) {
 		{1, PermissionsEnum().Delete},
 	}
 
-	dbAdapter, err := NewDBAdapter("postgres", "postgresql://postgres:infiniti@localhost:5432/infiniti?sslmode=disable")
+	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@localhost:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_NAME")))
 	if err != nil {
 		t.Error(err)
 	}
