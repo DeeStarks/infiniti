@@ -1,13 +1,8 @@
-SERVER_CONTAINER = infiniti-server
-DB_CONTAINER = infiniti-db
+include .env # Load environment variables from .env
+export
+
 LINE_THROUGH = "=============================================================="
-
 PKG := -d -v ./...
-
-DB_NAME := infiniti
-DB_USER := postgres
-DB_PASS := infiniti
-
 MIGRATION_NAME := $(shell date +%Y%m%d%H%M%S)
 
 docker-build:
