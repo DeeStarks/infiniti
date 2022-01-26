@@ -2,8 +2,6 @@ include .env # Load environment variables from .env
 export
 
 LINE_THROUGH = "=============================================================="
-PKG := -d -v ./...
-MIGRATION_NAME := $(shell date +%Y%m%d%H%M%S)
 
 docker-build:
 	@docker build -t infiniti-bank . ; \
@@ -57,6 +55,13 @@ start:
 		echo "$(LINE_THROUGH)"; \
 		make stop
 
+TESTDIR := .
+test:
+	@docker start $(DB_CONTAINER) && \
+		docker start $(SERVER_CONTAINER) && \
+		docker exec $(SERVER_CONTAINER) go test $(TESTDIR)/... && \
+		make stop
+
 shell:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
 		docker start $(SERVER_CONTAINER); \
@@ -70,6 +75,7 @@ stop:
 		&& docker stop $(DB_CONTAINER); \
 		echo "Done!\n$(LINE_THROUGH)"
 
+PKG := -d -v ./...
 install:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
 		docker start $(SERVER_CONTAINER); \
@@ -89,6 +95,7 @@ tidy:
 	fi && \
 	docker exec $(SERVER_CONTAINER) go mod tidy
 
+MIGRATION_NAME := $(shell date +%Y%m%d%H%M%S)
 create-migrations:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
 		docker start $(SERVER_CONTAINER); \
