@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 		{1, PermissionsEnum().Delete},
 	}
 
-	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@localhost:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_NAME")))
+	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@%s:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_HOST"), config.GetEnv("DB_NAME")))
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,7 +65,7 @@ func TestDelete(t *testing.T) {
 		{1, PermissionsEnum().Delete},
 	}
 
-	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@localhost:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_NAME")))
+	dbAdapter, err := NewDBAdapter("postgres", fmt.Sprintf("postgresql://%s:%s@%s:5432/%s?sslmode=disable", config.GetEnv("DB_USER"), config.GetEnv("DB_PASS"), config.GetEnv("DB_HOST"), config.GetEnv("DB_NAME")))
 	if err != nil {
 		t.Error(err)
 	}

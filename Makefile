@@ -102,7 +102,7 @@ migrate-up:
 	if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
 		docker start $(DB_CONTAINER); \
 	fi && \
-	docker exec $(SERVER_CONTAINER) migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@host.docker.internal:5432/$(DB_NAME)?sslmode=disable" -verbose up
+	docker exec $(SERVER_CONTAINER) migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose up
 
 migrate-down:
 	@if [ -z "${shell docker ps -q -f name=^$(SERVER_CONTAINER)$}" ]; then \
@@ -111,4 +111,4 @@ migrate-down:
 	if [ -z "${shell docker ps -q -f name=^$(DB_CONTAINER)$}" ]; then \
 		docker start $(DB_CONTAINER); \
 	fi && \
-	docker exec -it $(SERVER_CONTAINER) migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@host.docker.internal:5432/$(DB_NAME)?sslmode=disable" -verbose down
+	docker exec -it $(SERVER_CONTAINER) migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose down
