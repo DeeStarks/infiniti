@@ -39,7 +39,7 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 	}
 }
 
-func (permAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
+func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
 	var (
 		modelObj	 	PermissionsModel
 		colStr			string
@@ -52,7 +52,7 @@ func (permAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permis
 	}
 	colStr = colStr[:len(colStr)-2] // remove the last ", "
 	
-	dbTx, err := permAdpt.adapter.db.Begin()
+	dbTx, err := pAdpt.adapter.db.Begin()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -61,7 +61,7 @@ func (permAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permis
 	prepQuery, err := dbTx.Prepare(fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, table_id, method
-	`, permAdpt.tableName, colStr, pkg.CreatePlaceholder(len(valArr))))
+	`, pAdpt.tableName, colStr, pkg.CreatePlaceholder(len(valArr))))
 	if err != nil {
 		log.Fatal(err)
 		return nil, err

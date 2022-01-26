@@ -27,13 +27,13 @@ func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
 }
 
 // Define the methods of the UserAdapter
-func (userAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
+func (uAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
 	var user UserModel
 	query := fmt.Sprintf(`
 		SELECT id, username, email, password FROM %s
 		WHERE %s = $1
-	`, userAdpt.tableName, col)
-	err := userAdpt.adapter.db.QueryRow(query, value).Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+	`, uAdpt.tableName, col)
+	err := uAdpt.adapter.db.QueryRow(query, value).Scan(&user.Id, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -41,13 +41,13 @@ func (userAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, err
 	return &user, nil
 }
 
-func (userAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
+func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
 	var users []UserModel
 	query := fmt.Sprintf(`
 		SELECT id, username, email, password FROM %s
 		WHERE %s = $1
-	`, userAdpt.tableName, col)
-	rows, err := userAdpt.adapter.db.Query(query, value)
+	`, uAdpt.tableName, col)
+	rows, err := uAdpt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -66,10 +66,10 @@ func (userAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel
 	return &users, nil
 }
 
-func (userAdpt *UserAdapter) All() (*[]UserModel, error) {
+func (uAdpt *UserAdapter) All() (*[]UserModel, error) {
 	var users []UserModel
-	query := "SELECT id, username, email, password FROM " + userAdpt.tableName
-	rows, err := userAdpt.adapter.db.Query(query)
+	query := "SELECT id, username, email, password FROM " + uAdpt.tableName
+	rows, err := uAdpt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
