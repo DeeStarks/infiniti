@@ -67,9 +67,31 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 		return nil, err
 	}
 	defer prepQuery.Close()
-	prepQuery.QueryRow(valArr...).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	err = prepQuery.QueryRow(valArr...).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
 
 	err = dbTx.Commit()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &modelObj, nil
+}
+
+func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*PermissionsModel, error) {
+	var (
+		modelObj	PermissionsModel
+		err			error
+	)
+	query := fmt.Sprintf(`
+		DELETE FROM %s
+		WHERE %s = $1
+		RETURNING id, table_id, method
+	`, pAdpt.tableName, colName)
+	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
