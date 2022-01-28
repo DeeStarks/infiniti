@@ -1,0 +1,1 @@
+DELETE FROM "groups" WHERE "name" IN ('admin', 'user', 'staff');
