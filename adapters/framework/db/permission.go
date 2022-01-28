@@ -40,7 +40,7 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 }
 
 func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
-	var modelObj PermissionsModel
+	var permission PermissionsModel
 
 	colStr, valArr := lib.SplitMap(data)
 	query := fmt.Sprintf(`
@@ -59,7 +59,7 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 		return nil, err
 	}
 	defer prepQuery.Close()
-	err = prepQuery.QueryRow(valArr...).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	err = prepQuery.QueryRow(valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -70,12 +70,12 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 		log.Fatal(err)
 		return nil, err
 	}
-	return &modelObj, nil
+	return &permission, nil
 }
 
 func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*PermissionsModel, error) {
 	var (
-		modelObj	PermissionsModel
+		permission	PermissionsModel
 		err			error
 	)
 	query := fmt.Sprintf(`
@@ -83,17 +83,17 @@ func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*Per
 		WHERE %s = $1
 		RETURNING id, table_id, method
 	`, pAdpt.tableName, colName)
-	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	return &modelObj, nil
+	return &permission, nil
 }
 
 func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*PermissionsModel, error) {
 	var (
-		modelObj	PermissionsModel
+		permission	PermissionsModel
 		err			error
 	)
 	query := fmt.Sprintf(`
@@ -101,10 +101,35 @@ func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*Permis
 		FROM %s
 		WHERE %s = $1
 	`, pAdpt.tableName, colName)
-	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&modelObj.Id, &modelObj.TableId, &modelObj.Method)
+	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	return &modelObj, nil
+	return &permission, nil
+}
+
+func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]PermissionsModel, error) {
+	var (
+		permissions	[]PermissionsModel
+		err			error
+	)
+	query := fmt.Sprintf("SELECT id, table_id, method FROM %s WHERE %s = $1", pAdpt.tableName, colName)
+	rows, err := pAdpt.adapter.db.Query(query, value)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var permission PermissionsModel
+		err := rows.Scan(&permission.Id, &permission.TableId, &permission.Method)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		permissions = append(permissions, permission)
+	}
+	return &permissions, nil
 }
