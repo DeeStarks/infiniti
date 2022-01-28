@@ -40,28 +40,20 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 }
 
 func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
-	var (
-		modelObj	 	PermissionsModel
-		colStr			string
-		valArr 			[]interface{}
-	)
+	var modelObj PermissionsModel
 
-	for col, val := range data {
-		colStr += col + ", "
-		valArr = append(valArr, val)
-	}
-	colStr = colStr[:len(colStr)-2] // remove the last ", "
-	
+	colStr, valArr := lib.SplitMap(data)
+	query := fmt.Sprintf(`
+		INSERT INTO %s ( %s ) VALUES ( %s )
+		RETURNING id, table_id, method
+	`, pAdpt.tableName, colStr, lib.CreatePlaceholder(len(valArr)))
+
 	dbTx, err := pAdpt.adapter.db.Begin()
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-
-	prepQuery, err := dbTx.Prepare(fmt.Sprintf(`
-		INSERT INTO %s ( %s ) VALUES ( %s )
-		RETURNING id, table_id, method
-	`, pAdpt.tableName, colStr, lib.CreatePlaceholder(len(valArr))))
+	prepQuery, err := dbTx.Prepare(query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
