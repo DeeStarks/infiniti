@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/deestarks/infiniti/config"
+	"github.com/deestarks/infiniti/lib"
 )
 
-func TestCreate(t *testing.T) {
+func TestPermissionCreate(t *testing.T) {
 	// Load the environment variables
 	config.LoadEnv("../../../.env")
 
-	var createdIds string
+	var createdIds []interface{}
 	var tests = []struct {
 		table_id	int
 		method		string
@@ -45,22 +46,21 @@ func TestCreate(t *testing.T) {
 			t.Error(err)
 		}
 		// Add the id to the list of created ids; this will be used to delete the created permissions
-		createdIds += fmt.Sprintf("%d, ", permObj.Id)
-		createdIds = createdIds[:len(createdIds)-2]
+		createdIds = append(createdIds, permObj.Id)
 
 		if permObj.TableId != test.table_id && permObj.Method != test.method {
 			t.Errorf("Expected:\n    Table Id: %d\n    Method: %s\nGot:\n    Table Id: %d\n    Method: %s\n", 
 				test.table_id, test.method, permObj.TableId, permObj.Method)
 		}
 	}
-
-	_, err = dbAdapter.db.Exec("DELETE FROM permissions WHERE id IN ($1)", createdIds)
+	delQuery := fmt.Sprintf("DELETE FROM permissions WHERE id IN (%s)", lib.CreatePlaceholder(len(createdIds)))
+	_, err = dbAdapter.db.Exec(delQuery, createdIds...)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestPermissionDelete(t *testing.T) {
 	// Load the environment variables
 	config.LoadEnv("../../../.env")
 
