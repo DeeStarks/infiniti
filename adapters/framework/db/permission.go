@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"log"
-	"github.com/deestarks/infiniti/pkg"
+	"github.com/deestarks/infiniti/lib"
 )
 
 type (
@@ -61,7 +61,7 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 	prepQuery, err := dbTx.Prepare(fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, colStr, pkg.CreatePlaceholder(len(valArr))))
+	`, pAdpt.tableName, colStr, lib.CreatePlaceholder(len(valArr))))
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
