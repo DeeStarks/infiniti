@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"log"
-	"github.com/deestarks/infiniti/lib"
+	"github.com/deestarks/infiniti/utils"
 )
 
 type (
@@ -42,11 +42,11 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
 	var permission PermissionsModel
 
-	colStr, valArr := lib.SplitMap(data)
+	colStr, valArr := utils.SplitMap(data)
 	query := fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, colStr, lib.CreatePlaceholder(len(valArr)))
+	`, pAdpt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
 	dbTx, err := pAdpt.adapter.db.Begin()
 	if err != nil {

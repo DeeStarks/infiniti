@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/deestarks/infiniti/config"
-	"github.com/deestarks/infiniti/lib"
+	"github.com/deestarks/infiniti/utils"
 )
 
 func TestPermissionCreate(t *testing.T) {
@@ -53,7 +53,7 @@ func TestPermissionCreate(t *testing.T) {
 				test.table_id, test.method, permObj.TableId, permObj.Method)
 		}
 	}
-	delQuery := fmt.Sprintf("DELETE FROM permissions WHERE id IN (%s)", lib.CreatePlaceholder(len(createdIds)))
+	delQuery := fmt.Sprintf("DELETE FROM permissions WHERE id IN (%s)", utils.CreatePlaceholder(len(createdIds)))
 	_, err = dbAdapter.db.Exec(delQuery, createdIds...)
 	if err != nil {
 		t.Error(err)
