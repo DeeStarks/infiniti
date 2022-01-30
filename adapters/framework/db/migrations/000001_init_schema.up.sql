@@ -28,7 +28,8 @@ CREATE TABLE "user_permissions" (
 
 CREATE TABLE "groups" (
   "id" bigserial PRIMARY KEY,
-  "name" varchar
+  "name" varchar,
+  "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "group_permissions" (
@@ -59,7 +60,8 @@ CREATE TABLE "user_accounts" (
   "account_type_id" int,
   "account_number" bigint UNIQUE NOT NULL,
   "balance" double PRECISION DEFAULT 0.0,
-  "currency_id" int
+  "currency_id" int,
+  "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "transaction_types" (
