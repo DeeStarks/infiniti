@@ -42,30 +42,54 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
 	var permission PermissionsModel
 
-	colStr, valArr := utils.SplitMap(data)
+	mToS := utils.MapToStructSlice(data)
+	var (
+		colStr		string
+		valArr		[]interface{}
+	)
+	for i, s := range mToS {
+		colStr += s.Key + ", "
+		valArr = append(valArr, s.Value)
+		if i == len(mToS)-1 {
+			colStr = colStr[:len(colStr)-2] // remove the last ", "
+		}
+	}
+
 	query := fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, table_id, method
 	`, pAdpt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
-	dbTx, err := pAdpt.adapter.db.Begin()
+	err := pAdpt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	prepQuery, err := dbTx.Prepare(query)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
-	defer prepQuery.Close()
-	err = prepQuery.QueryRow(valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
+	return &permission, nil
+}
 
-	err = dbTx.Commit()
+func (pAdpt *PermissionsAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*PermissionsModel, error) {
+	var (
+		permission 	PermissionsModel
+		valArr		[]interface{}
+	)
+	
+	mToS := utils.MapToStructSlice(data)
+	for _, s := range mToS {
+		valArr = append(valArr, s.Value)
+	}
+	query := fmt.Sprintf(`
+		UPDATE %s SET %s
+		WHERE %s = $%d
+		RETURNING id, table_id, method
+	`, pAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1) // CreateSetConditions will create
+	// conditions and create placeholders for the values (e.g. id = $1, name = $2...$n)
+	// The last "len(data)+1" is for the value of the column to be updated.
+
+	// Add the value of the column to be updated to the end of the array of values.
+	valArr = append(valArr, colValue)
+
+	err := pAdpt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
