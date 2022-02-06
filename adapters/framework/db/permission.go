@@ -157,3 +157,28 @@ func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]P
 	}
 	return &permissions, nil
 }
+
+func (pAdpt *PermissionsAdapter) All() (*[]PermissionsModel, error) {
+	var (
+		permissions	[]PermissionsModel
+		err			error
+	)
+	query := fmt.Sprintf("SELECT id, table_id, method FROM %s", pAdpt.tableName)
+	rows, err := pAdpt.adapter.db.Query(query)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var permission PermissionsModel
+		err := rows.Scan(&permission.Id, &permission.TableId, &permission.Method)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		permissions = append(permissions, permission)
+	}
+	return &permissions, nil
+}
