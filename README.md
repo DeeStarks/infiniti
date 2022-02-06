@@ -1,4 +1,4 @@
-# INFINITI
+# INFINITI (in progress)
 
 Infiniti is a bank application for user accounts and transactions management. The system is designed on the basis of the Hexagonal Architecture.
 
