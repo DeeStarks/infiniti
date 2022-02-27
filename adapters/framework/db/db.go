@@ -6,6 +6,8 @@ import (
     _ "github.com/lib/pq"
 )
 
+// DB Schema Link: https://dbdiagram.io/d/61cc73453205b45b73d0fdfe
+
 type DBAdapter struct {
 	db		*sql.DB
 }
