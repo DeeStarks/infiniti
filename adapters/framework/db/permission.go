@@ -8,9 +8,11 @@ import (
 
 type (
 	PermissionsModel struct {
-		Id			int 	`json:"id"`
-		TableId		int 	`json:"table_id"`
-		Method		string 	`json:"method"`
+		Id					int 					`json:"id"`
+		TableId				int 					`json:"table_id"`
+		Method				string 					`json:"method"`
+		// UserPermissions   	UserPermissionsModel	`json:"user_permissions"` // One to many relationship
+		// GroupPermissions  	GroupPermissionsModel	`json:"group_permissions"` // One to many relationship
 	}
 
 	PermissionsAdapter struct {
@@ -115,17 +117,33 @@ func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*Per
 	return &permission, nil
 }
 
+// "Get" returns a single permission
 func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*PermissionsModel, error) {
 	var (
 		permission	PermissionsModel
 		err			error
 	)
+
 	query := fmt.Sprintf(`
 		SELECT id, table_id, method
 		FROM %s
 		WHERE %s = $1
 	`, pAdpt.tableName, colName)
-	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
+
+	// This will replace the above query when the UserPermissionsModel and GroupPermissionsModel are implemented
+	// query := fmt.Sprintf(`
+	// 	SELECT %[1]s.id, %[1]s.table_id, %[1]s.method, user_permissions.id, user_permissions.user_id, user_permissions.permission_id,
+	// 		group_permissions.id, group_permissions.group_id, group_permissions.permission_id
+	// 	FROM %[1]s	
+	// 	WHERE %[2]s = $1
+	// 	OUTER JOIN user_permissions ON user_permissions.permission_id = permissions.id
+	// 	OUTER JOIN group_permissions ON group_permissions.permission_id = permissions.id
+	// `, pAdpt.tableName, colName)
+	err = pAdpt.adapter.db.QueryRow(query, value).Scan(
+		&permission.Id, &permission.TableId, &permission.Method,
+		// &permission.UserPermissions.Id, &permission.UserPermissions.UserId, &permission.UserPermissions.PermissionId,
+		// &permission.GroupPermissions.Id, &permission.GroupPermissions.GroupId, &permission.GroupPermissions.PermissionId,
+	)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -139,6 +157,16 @@ func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]P
 		err			error
 	)
 	query := fmt.Sprintf("SELECT id, table_id, method FROM %s WHERE %s = $1", pAdpt.tableName, colName)
+
+	// This will replace the above query when the UserPermissionsModel and GroupPermissionsModel are implemented
+	// query := fmt.Sprintf(`
+	// 	SELECT %[1]s.id, %[1]s.table_id, %[1]s.method, user_permissions.id, user_permissions.user_id, user_permissions.permission_id,
+	// 		group_permissions.id, group_permissions.group_id, group_permissions.permission_id
+	// 	FROM %[1]s 
+	// 	WHERE %s = $1
+	// 	OUTER JOIN user_permissions ON user_permissions.permission_id = permissions.id
+	// 	OUTER JOIN group_permissions ON group_permissions.permission_id = permissions.id
+	// `, pAdpt.tableName, colName)
 	rows, err := pAdpt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
@@ -148,7 +176,11 @@ func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]P
 
 	for rows.Next() {
 		var permission PermissionsModel
-		err := rows.Scan(&permission.Id, &permission.TableId, &permission.Method)
+		err := rows.Scan(
+			&permission.Id, &permission.TableId, &permission.Method,
+			// &permission.UserPermissions.Id, &permission.UserPermissions.UserId, &permission.UserPermissions.PermissionId,
+			// &permission.GroupPermissions.Id, &permission.GroupPermissions.GroupId, &permission.GroupPermissions.PermissionId,
+		)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -158,12 +190,21 @@ func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]P
 	return &permissions, nil
 }
 
-func (pAdpt *PermissionsAdapter) All() (*[]PermissionsModel, error) {
+// "List" returns all permissions
+func (pAdpt *PermissionsAdapter) List() (*[]PermissionsModel, error) {
 	var (
 		permissions	[]PermissionsModel
 		err			error
 	)
 	query := fmt.Sprintf("SELECT id, table_id, method FROM %s", pAdpt.tableName)
+	// This will replace the above query when the UserPermissionsModel and GroupPermissionsModel are implemented
+	// query := fmt.Sprintf(`
+	// 	SELECT %[1]s.id, %[1]s.table_id, %[1]s.method, user_permissions.id, user_permissions.user_id, user_permissions.permission_id,
+	// 		group_permissions.id, group_permissions.group_id, group_permissions.permission_id
+	//	FROM %s
+	// 	OUTER JOIN user_permissions ON user_permissions.permission_id = permissions.id
+	// 	OUTER JOIN group_permissions ON group_permissions.permission_id = permissions.id
+	// `, pAdpt.tableName)
 	rows, err := pAdpt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
@@ -173,7 +214,11 @@ func (pAdpt *PermissionsAdapter) All() (*[]PermissionsModel, error) {
 
 	for rows.Next() {
 		var permission PermissionsModel
-		err := rows.Scan(&permission.Id, &permission.TableId, &permission.Method)
+		err := rows.Scan(
+			&permission.Id, &permission.TableId, &permission.Method,
+			// &permission.UserPermissions.Id, &permission.UserPermissions.UserId, &permission.UserPermissions.PermissionId,
+			// &permission.GroupPermissions.Id, &permission.GroupPermissions.GroupId, &permission.GroupPermissions.PermissionId,
+		)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
