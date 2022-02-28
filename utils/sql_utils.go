@@ -28,9 +28,10 @@ func MapToStructSlice(data map[string]interface{}) []SplitMap {
 	return splitMap
 }
 
-// Create "SET" conditions string with the input = "data: []SplitMap"
+// Create "SET" conditions string with the input "data"
 // Values are replaced with placeholders
 // (e.g. []SplitMap{{"id", 1}, {"name", "John"}} returns "id = $1, name = $2")
+// NB: To be used together with the MapToStructSlice function
 func CreateSetConditions(data []SplitMap) string {
 	var setConditions string
 	for i, val := range data {

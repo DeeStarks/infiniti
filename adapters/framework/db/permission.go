@@ -84,9 +84,7 @@ func (pAdpt *PermissionsAdapter) Update(col string, colValue interface{}, data m
 		UPDATE %s SET %s
 		WHERE %s = $%d
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1) // CreateSetConditions will create
-	// conditions and create placeholders for the values (e.g. id = $1, name = $2...$n)
-	// The last "len(data)+1" is for the value of the column to be updated.
+	`, pAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1) // "len(data)+1" creates a placeholder for the value of the column to be updated.
 
 	// Add the value of the column to be updated to the end of the array of values.
 	valArr = append(valArr, colValue)
