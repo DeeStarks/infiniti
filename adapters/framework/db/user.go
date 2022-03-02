@@ -32,13 +32,13 @@ func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
 }
 
 // Define the methods of the UserAdapter
-func (uAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
 	var user UserModel
 	query := fmt.Sprintf(`
 		SELECT id, first_name, last_name, email, password, created_at FROM %s
 		WHERE %s = $1
-	`, uAdpt.tableName, col)
-	err := uAdpt.adapter.db.QueryRow(query, value).Scan(
+	`, mAdapt.tableName, col)
+	err := mAdapt.adapter.db.QueryRow(query, value).Scan(
 		&user.Id, &user.FirstName, &user.LastName, 
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
@@ -49,13 +49,13 @@ func (uAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error)
 	return &user, nil
 }
 
-func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
+func (mAdapt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
 	var users []UserModel
 	query := fmt.Sprintf(`
 		SELECT id, first_name, last_name, email, password, created_at FROM %s
 		WHERE %s = $1
-	`, uAdpt.tableName, col)
-	rows, err := uAdpt.adapter.db.Query(query, value)
+	`, mAdapt.tableName, col)
+	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -77,12 +77,12 @@ func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, e
 	return &users, nil
 }
 
-func (uAdpt *UserAdapter) List() (*[]UserModel, error) {
+func (mAdapt *UserAdapter) List() (*[]UserModel, error) {
 	var users []UserModel
 	query := fmt.Sprintf(`
 		SELECT id, first_name, last_name, email, password, created_at FROM %s
-	`, uAdpt.tableName)
-	rows, err := uAdpt.adapter.db.Query(query)
+	`, mAdapt.tableName)
+	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -103,7 +103,7 @@ func (uAdpt *UserAdapter) List() (*[]UserModel, error) {
 	return &users, nil
 }
 
-func (uAdpt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error) {
 	var user UserModel
 
 	mToS := utils.MapToStructSlice(data)
@@ -122,9 +122,9 @@ func (uAdpt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error
 	query := fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, first_name, last_name, email, password, created_at
-	`, uAdpt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
+	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
-	err := uAdpt.adapter.db.QueryRow(query, valArr...).Scan(
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
@@ -135,7 +135,7 @@ func (uAdpt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error
 	return &user, nil
 }
 
-func (uAdpt *UserAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*UserModel, error) {
 	var (
 		user 	UserModel
 		valArr		[]interface{}
@@ -149,11 +149,11 @@ func (uAdpt *UserAdapter) Update(col string, colValue interface{}, data map[stri
 		UPDATE %s SET %s
 		WHERE %s = $%d
 		RETURNING id, first_name, last_name, email, password, created_at
-	`, uAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1)
+	`, mAdapt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1)
 
 	valArr = append(valArr, colValue)
 
-	err := uAdpt.adapter.db.QueryRow(query, valArr...).Scan(
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
@@ -164,7 +164,7 @@ func (uAdpt *UserAdapter) Update(col string, colValue interface{}, data map[stri
 	return &user, nil
 }
 
-func (uAdpt *UserAdapter) Delete(colName string, value interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (*UserModel, error) {
 	var (
 		user	UserModel
 		err			error
@@ -173,8 +173,8 @@ func (uAdpt *UserAdapter) Delete(colName string, value interface{}) (*UserModel,
 		DELETE FROM %s
 		WHERE %s = $1
 		RETURNING id, first_name, last_name, email, password, created_at
-	`, uAdpt.tableName, colName)
-	err = uAdpt.adapter.db.QueryRow(query, value).Scan(
+	`, mAdapt.tableName, colName)
+	err = mAdapt.adapter.db.QueryRow(query, value).Scan(
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)

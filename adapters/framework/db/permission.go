@@ -40,7 +40,7 @@ func (adpt *DBAdapter) NewPermissionsAdapter() *PermissionsAdapter {
 	}
 }
 
-func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) Create(data map[string]interface{}) (*PermissionsModel, error) {
 	var permission PermissionsModel
 
 	mToS := utils.MapToStructSlice(data)
@@ -59,9 +59,9 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 	query := fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
+	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
-	err := pAdpt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -69,7 +69,7 @@ func (pAdpt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissio
 	return &permission, nil
 }
 
-func (pAdpt *PermissionsAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*PermissionsModel, error) {
 	var (
 		permission 	PermissionsModel
 		valArr		[]interface{}
@@ -83,12 +83,12 @@ func (pAdpt *PermissionsAdapter) Update(col string, colValue interface{}, data m
 		UPDATE %s SET %s
 		WHERE %s = $%d
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1) // "len(data)+1" creates a placeholder for the value of the column to be updated.
+	`, mAdapt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1) // "len(data)+1" creates a placeholder for the value of the column to be updated.
 
 	// Add the value of the column to be updated to the end of the array of values.
 	valArr = append(valArr, colValue)
 
-	err := pAdpt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -96,7 +96,7 @@ func (pAdpt *PermissionsAdapter) Update(col string, colValue interface{}, data m
 	return &permission, nil
 }
 
-func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) Delete(colName string, value interface{}) (*PermissionsModel, error) {
 	var (
 		permission	PermissionsModel
 		err			error
@@ -105,8 +105,8 @@ func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*Per
 		DELETE FROM %s
 		WHERE %s = $1
 		RETURNING id, table_id, method
-	`, pAdpt.tableName, colName)
-	err = pAdpt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
+	`, mAdapt.tableName, colName)
+	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -115,7 +115,7 @@ func (pAdpt *PermissionsAdapter) Delete(colName string, value interface{}) (*Per
 }
 
 // "Get" returns a single permission
-func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) Get(colName string, value interface{}) (*PermissionsModel, error) {
 	var (
 		permission	PermissionsModel
 		err			error
@@ -125,9 +125,9 @@ func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*Permis
 		SELECT id, table_id, method
 		FROM %s
 		WHERE %s = $1
-	`, pAdpt.tableName, colName)
-	// `, pAdpt.tableName, colName)
-	err = pAdpt.adapter.db.QueryRow(query, value).Scan(
+	`, mAdapt.tableName, colName)
+	// `, mAdapt.tableName, colName)
+	err = mAdapt.adapter.db.QueryRow(query, value).Scan(
 		&permission.Id, &permission.TableId, &permission.Method,
 	)
 	if err != nil {
@@ -137,13 +137,13 @@ func (pAdpt *PermissionsAdapter) Get(colName string, value interface{}) (*Permis
 	return &permission, nil
 }
 
-func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]PermissionsModel, error) {
 	var (
 		permissions	[]PermissionsModel
 		err			error
 	)
-	query := fmt.Sprintf("SELECT id, table_id, method FROM %s WHERE %s = $1", pAdpt.tableName, colName)
-	rows, err := pAdpt.adapter.db.Query(query, value)
+	query := fmt.Sprintf("SELECT id, table_id, method FROM %s WHERE %s = $1", mAdapt.tableName, colName)
+	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -165,13 +165,13 @@ func (pAdpt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]P
 }
 
 // "List" returns all permissions
-func (pAdpt *PermissionsAdapter) List() (*[]PermissionsModel, error) {
+func (mAdapt *PermissionsAdapter) List() (*[]PermissionsModel, error) {
 	var (
 		permissions	[]PermissionsModel
 		err			error
 	)
-	query := fmt.Sprintf("SELECT id, table_id, method FROM %s", pAdpt.tableName)
-	rows, err := pAdpt.adapter.db.Query(query)
+	query := fmt.Sprintf("SELECT id, table_id, method FROM %s", mAdapt.tableName)
+	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
