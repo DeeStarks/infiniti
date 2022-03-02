@@ -59,8 +59,8 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 		ManyModels		[]UserModel
 	)
 
-	// The following will record ids of foreign keys to avoid duplicates
-	userHits 		:= make(map[int]bool)
+	// The following is to avoid duplicates
+	userHits 		:= make(global.PreviousIdHits)
 	permissionHits 	:= make(global.PreviousIdHits)
 	userGroupHits 	:= make(global.PreviousIdHits)
 
@@ -115,16 +115,14 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 				}
 			}
 		} else {
-			if !userHits[userId] && SingleModel.Id != 0 { // If the user has not been hit and the user model has been populated
-				ManyModels = append(ManyModels, SingleModel) // Add the user model to the list of user models
-				SingleModel = UserModel{} // Reset the user model
-				permissionHits = make(global.PreviousIdHits) // Reset the permission hits
-				userGroupHits = make(global.PreviousIdHits) // Reset the user group hits
-				isInitial = false
-			}
+			if !userHits[userId] { // If the user has not been hit
+				if SingleModel.Id != 0 { // If the user model has been populated
+					ManyModels 		= append(ManyModels, SingleModel) // Add the user model to the list of user models
+					SingleModel 	= UserModel{} // Reset the user model
+					permissionHits 	= make(global.PreviousIdHits) // Reset the permission hits
+					userGroupHits 	= make(global.PreviousIdHits) // Reset the user group hits
+				}
 
-			if !isInitial { // If this is the first row, populate user model with the first row
-				isInitial = true
 				if err := row.Scan(
 					&SingleModel.Id, &SingleModel.FirstName, &SingleModel.LastName,
 					&SingleModel.Email, &SingleModel.Password, &SingleModel.CreatedAt,
@@ -168,6 +166,9 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 		}
 	}
 	if many {
+		if SingleModel.Id != 0 { // If the user model has been populated
+			ManyModels = append(ManyModels, SingleModel) // Add the last user model to the list of user models
+		}
 		return &ManyModels, nil
 	}
 	return &SingleModel, nil
