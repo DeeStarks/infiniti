@@ -1,0 +1,1 @@
+DELETE FROM "transaction_types" WHERE "name" IN ('deposit', 'withdrawal', 'transfer', 'payment', 'receive');
