@@ -3,14 +3,19 @@ package db
 import (
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/deestarks/infiniti/utils"
 )
 
 type (
 	UserModel struct {
-		Id 			int 	`json:"id"`
-		Username 	string 	`json:"username"`
-		Email 		string 	`json:"email"`
-		Password 	string 	`json:"password"`
+		Id 			int 		`json:"id"`
+		FirstName 	string 		`json:"first_name"`
+		LastName 	string 		`json:"last_name"`
+		Email 		string 		`json:"email"`
+		Password 	string 		`json:"password"`
+		CreatedAt 	time.Time 	`json:"created_at"`
 	}
 	
 	UserAdapter struct {
@@ -30,10 +35,13 @@ func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
 func (uAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
 	var user UserModel
 	query := fmt.Sprintf(`
-		SELECT id, username, email, password FROM %s
+		SELECT id, first_name, last_name, email, password, created_at FROM %s
 		WHERE %s = $1
 	`, uAdpt.tableName, col)
-	err := uAdpt.adapter.db.QueryRow(query, value).Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+	err := uAdpt.adapter.db.QueryRow(query, value).Scan(
+		&user.Id, &user.FirstName, &user.LastName, 
+		&user.Email, &user.Password, &user.CreatedAt,
+	)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -44,7 +52,7 @@ func (uAdpt *UserAdapter) Get(col string, value interface{}) (*UserModel, error)
 func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
 	var users []UserModel
 	query := fmt.Sprintf(`
-		SELECT id, username, email, password FROM %s
+		SELECT id, first_name, last_name, email, password, created_at FROM %s
 		WHERE %s = $1
 	`, uAdpt.tableName, col)
 	rows, err := uAdpt.adapter.db.Query(query, value)
@@ -56,7 +64,10 @@ func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, e
 
 	for rows.Next() {
 		var user UserModel
-		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+		err := rows.Scan(
+			&user.Id, &user.FirstName, &user.LastName,
+			&user.Email, &user.Password, &user.CreatedAt,
+		)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -66,9 +77,11 @@ func (uAdpt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, e
 	return &users, nil
 }
 
-func (uAdpt *UserAdapter) All() (*[]UserModel, error) {
+func (uAdpt *UserAdapter) List() (*[]UserModel, error) {
 	var users []UserModel
-	query := "SELECT id, username, email, password FROM " + uAdpt.tableName
+	query := fmt.Sprintf(`
+		SELECT id, first_name, last_name, email, password, created_at FROM %s
+	`, uAdpt.tableName)
 	rows, err := uAdpt.adapter.db.Query(query)
 	if err != nil {
 		log.Fatal(err)
@@ -77,7 +90,10 @@ func (uAdpt *UserAdapter) All() (*[]UserModel, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var user UserModel
-		err := rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+		err := rows.Scan(
+			&user.Id, &user.FirstName, &user.LastName,
+			&user.Email, &user.Password, &user.CreatedAt,
+		)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -85,4 +101,86 @@ func (uAdpt *UserAdapter) All() (*[]UserModel, error) {
 		users = append(users, user)
 	}
 	return &users, nil
+}
+
+func (uAdpt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error) {
+	var user UserModel
+
+	mToS := utils.MapToStructSlice(data)
+	var (
+		colStr		string
+		valArr		[]interface{}
+	)
+	for i, s := range mToS {
+		colStr += s.Key + ", "
+		valArr = append(valArr, s.Value)
+		if i == len(mToS)-1 {
+			colStr = colStr[:len(colStr)-2] // remove the last ", "
+		}
+	}
+
+	query := fmt.Sprintf(`
+		INSERT INTO %s ( %s ) VALUES ( %s )
+		RETURNING id, first_name, last_name, email, password, created_at
+	`, uAdpt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
+
+	err := uAdpt.adapter.db.QueryRow(query, valArr...).Scan(
+		&user.Id, &user.FirstName, &user.LastName,
+		&user.Email, &user.Password, &user.CreatedAt,
+	)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (uAdpt *UserAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*UserModel, error) {
+	var (
+		user 	UserModel
+		valArr		[]interface{}
+	)
+	
+	mToS := utils.MapToStructSlice(data)
+	for _, s := range mToS {
+		valArr = append(valArr, s.Value)
+	}
+	query := fmt.Sprintf(`
+		UPDATE %s SET %s
+		WHERE %s = $%d
+		RETURNING id, first_name, last_name, email, password, created_at
+	`, uAdpt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1)
+
+	valArr = append(valArr, colValue)
+
+	err := uAdpt.adapter.db.QueryRow(query, valArr...).Scan(
+		&user.Id, &user.FirstName, &user.LastName,
+		&user.Email, &user.Password, &user.CreatedAt,
+	)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (uAdpt *UserAdapter) Delete(colName string, value interface{}) (*UserModel, error) {
+	var (
+		user	UserModel
+		err			error
+	)
+	query := fmt.Sprintf(`
+		DELETE FROM %s
+		WHERE %s = $1
+		RETURNING id, first_name, last_name, email, password, created_at
+	`, uAdpt.tableName, colName)
+	err = uAdpt.adapter.db.QueryRow(query, value).Scan(
+		&user.Id, &user.FirstName, &user.LastName,
+		&user.Email, &user.Password, &user.CreatedAt,
+	)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &user, nil
 }
