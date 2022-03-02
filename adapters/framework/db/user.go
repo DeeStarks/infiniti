@@ -60,7 +60,7 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 	)
 
 	// The following will record ids of foreign keys to avoid duplicates
-	userHits := make(map[int]bool)
+	userHits 		:= make(map[int]bool)
 	permissionHits 	:= make(global.PreviousIdHits)
 	userGroupHits 	:= make(global.PreviousIdHits)
 
