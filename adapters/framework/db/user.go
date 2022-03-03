@@ -53,7 +53,6 @@ var (
 
 func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 	var (
-		// notInitial 		bool // Used to determine if the first row is being populated
 		permission 		UserPermissionsModel
 		userGroup 		UserGroupModel
 		SingleModel		UserModel
@@ -81,11 +80,11 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 		}
 
 		if !many {
-			if !permissionHits[permission.Id] { // If the permission has not been hit, add it to the user's permissions
+			if !permissionHits[permission.Id] && permission.Id != 0 { // If the permission has not been hit and the permission is not null
 				SingleModel.UserPermissions = append(SingleModel.UserPermissions, permission)
 				permissionHits[permission.Id] = true
 			}
-			if !userGroupHits[userGroup.GroupId] { // If the user group has not been hit, add it to the user's user groups
+			if !userGroupHits[userGroup.GroupId] && userGroup.GroupId != 0 { // If the user group has not been hit and the user group is not null
 				SingleModel.UserGroups = append(SingleModel.UserGroups, userGroup)
 				userGroupHits[userGroup.GroupId] = true
 			}
