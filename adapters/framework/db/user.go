@@ -34,7 +34,8 @@ type (
 var (
 	selection = `
 		users.id, users.first_name, users.last_name, users.email, users.password, users.created_at,
-		COALESCE(account.id, 0), COALESCE(account.user_id, 0), COALESCE(account.account_type_id, 0), COALESCE(account.account_number, 0), COALESCE(account.balance, 0.0), COALESCE(account.currency_id, 0),
+		COALESCE(account.id, 0), COALESCE(account.user_id, 0), COALESCE(account.account_type_id, 0), 
+		COALESCE(account.account_number, 0), COALESCE(account.balance, 0.0), COALESCE(account.currency_id, 0),
 		COALESCE(account_type.id, 0), COALESCE(account_type.name, ''),
 		COALESCE(currency.id, 0), COALESCE(currency.name, ''), COALESCE(currency.symbol, ''),
 		COALESCE(permission.id, 0), COALESCE(permission.user_id, 0), COALESCE(permission.permission_id, 0),
