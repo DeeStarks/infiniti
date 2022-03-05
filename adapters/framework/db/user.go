@@ -55,12 +55,13 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 	var (
 		permission 		UserPermissionsModel
 		userGroup 		UserGroupModel
+		tempModel		UserModel
 		SingleModel		UserModel
 		ManyModels		[]UserModel
+		isInitial		bool = true // Used to determine if we are populating the first model
 	)
 
 	// The following is to avoid duplicates
-	userHits 		:= make(global.PreviousIdHits)
 	permissionHits 	:= make(global.PreviousIdHits)
 	userGroupHits 	:= make(global.PreviousIdHits)
 
@@ -89,44 +90,35 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 				userGroupHits[userGroup.GroupId] = true
 			}
 		} else {
-			// <=========== TODO: Complete this section ===========>
-
-			if !userHits[SingleModel.Id] { // If the user has not been hit
-				if SingleModel.Id != 0 { // If the user model has been populated
-					fmt.Println(SingleModel.Id)
-					ManyModels 		= append(ManyModels, SingleModel) // Add the user model to the list of user models
-					SingleModel 	= UserModel{} // Reset the user model
-					permissionHits 	= make(global.PreviousIdHits) // Reset the permission hits
-					userGroupHits 	= make(global.PreviousIdHits) // Reset the user group hits
+			if tempModel.Id != SingleModel.Id { // Check if the model has changed
+				if isInitial { // If this is the first model
+					isInitial = false
+				} else {
+					ManyModels = append(ManyModels, tempModel)
 				}
+				tempModel = SingleModel
 
-				SingleModel.UserPermissions = append(SingleModel.UserPermissions, permission)
-				SingleModel.UserGroups = append(SingleModel.UserGroups, userGroup)
-				permissionHits[permission.Id] = true // Add the permission to the permissionHits map to prevent duplicates
-				userGroupHits[userGroup.GroupId] = true // Add the user group to the userGroupHits map to prevent duplicates
-				userHits[SingleModel.Id] = true // Add the user to the userHits map to prevent duplicates
-				fmt.Println(userHits[SingleModel.Id])
-			} else { // If this is not the first row, populate with only the foreign keys
-				if !permissionHits[permission.Id] { // If the permission has not been hit, add it to the user's permissions
-					SingleModel.UserPermissions = append(SingleModel.UserPermissions, permission)
+				permissionHits 	= make(global.PreviousIdHits)
+				userGroupHits 	= make(global.PreviousIdHits)
+			} else {
+				if !permissionHits[permission.Id] && permission.Id != 0 { // If the permission has not been hit and the permission is not null
+					tempModel.UserPermissions = append(tempModel.UserPermissions, permission)
 					permissionHits[permission.Id] = true
 				}
-				if !userGroupHits[userGroup.GroupId] { // If the user group has not been hit, add it to the user's user groups
-					SingleModel.UserGroups = append(SingleModel.UserGroups, userGroup)
+				if !userGroupHits[userGroup.GroupId] && userGroup.GroupId != 0 { // If the user group has not been hit and the user group is not null
+					tempModel.UserGroups = append(tempModel.UserGroups, userGroup)
 					userGroupHits[userGroup.GroupId] = true
 				}
 			}
-
-			// <========================================>
 		}
 	}
 	if many {
 		if SingleModel.Id != 0 { // If the user model has been populated
-			ManyModels = append(ManyModels, SingleModel) // Add the last user model to the list of user models
+			ManyModels = append(ManyModels, tempModel) // Append the last added user model
 		}
-		return &ManyModels, nil
+		return ManyModels, nil
 	}
-	return &SingleModel, nil
+	return SingleModel, nil
 }
 
 func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
@@ -137,7 +129,7 @@ func (adpt *DBAdapter) NewUserAdapter() *UserAdapter {
 }
 
 // Define the methods of the UserAdapter
-func (mAdapt *UserAdapter) Get(col string, value interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Get(col string, value interface{}) (UserModel, error) {
 	query := fmt.Sprintf(`
 		SELECT %s FROM %s
 		%s
@@ -147,22 +139,22 @@ func (mAdapt *UserAdapter) Get(col string, value interface{}) (*UserModel, error
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return UserModel{}, err
 	}
 	defer rows.Close()
 
 	arrangedUser, err := populateUserModel(rows, false)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return UserModel{}, err
 	}
 
-	user := arrangedUser.(*UserModel)
+	user := arrangedUser.(UserModel)
 	return user, nil
 }
 
 // TODO: Populate the user model with the user's permissions and user groups
-func (mAdapt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, error) {
+func (mAdapt *UserAdapter) Filter(col string, value interface{}) ([]UserModel, error) {
 	query := fmt.Sprintf(`
 		SELECT id, first_name, last_name, email, password, created_at FROM %s
 		WHERE %s = $1 ORDER BY id ASC
@@ -180,12 +172,12 @@ func (mAdapt *UserAdapter) Filter(col string, value interface{}) (*[]UserModel, 
 		return nil, err
 	}
 
-	users := arrangedUsers.(*[]UserModel)
+	users := arrangedUsers.([]UserModel)
 	return users, nil
 }
 
 // TODO: Populate the user model with the user's permissions and user groups
-func (mAdapt *UserAdapter) List() (*[]UserModel, error) {
+func (mAdapt *UserAdapter) List() ([]UserModel, error) {
 	query := fmt.Sprintf(`
 		SELECT %s FROM %s
 		%s
@@ -204,11 +196,11 @@ func (mAdapt *UserAdapter) List() (*[]UserModel, error) {
 		return nil, err
 	}
 
-	users := arrangedUsers.(*[]UserModel)
+	users := arrangedUsers.([]UserModel)
 	return users, nil
 }
 
-func (mAdapt *UserAdapter) Create(data map[string]interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Create(data map[string]interface{}) (UserModel, error) {
 	var user UserModel
 
 	mToS := utils.MapToStructSlice(data)
@@ -235,12 +227,12 @@ func (mAdapt *UserAdapter) Create(data map[string]interface{}) (*UserModel, erro
 	)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return UserModel{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
-func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[string]interface{}) (UserModel, error) {
 	var (
 		user 	UserModel
 		valArr		[]interface{}
@@ -264,12 +256,12 @@ func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[str
 	)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return UserModel{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
-func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (*UserModel, error) {
+func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (UserModel, error) {
 	var (
 		user	UserModel
 		err			error
@@ -285,7 +277,7 @@ func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (*UserModel
 	)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return UserModel{}, err
 	}
-	return &user, nil
+	return user, nil
 }
