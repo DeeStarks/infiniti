@@ -61,7 +61,8 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 		isInitial		bool = true // Used to determine if we are populating the first model
 	)
 
-	// The following is to avoid duplicates
+	// To prevent duplicates of the foreign keys,
+	// we will store every ids in the "global.PreviousIdHits" map
 	permissionHits 	:= make(global.PreviousIdHits)
 	userGroupHits 	:= make(global.PreviousIdHits)
 
@@ -143,13 +144,13 @@ func (mAdapt *UserAdapter) Get(col string, value interface{}) (UserModel, error)
 	}
 	defer rows.Close()
 
-	arrangedUser, err := populateUserModel(rows, false)
+	population, err := populateUserModel(rows, false)
 	if err != nil {
 		log.Fatal(err)
 		return UserModel{}, err
 	}
 
-	user := arrangedUser.(UserModel)
+	user := population.(UserModel)
 	return user, nil
 }
 
@@ -166,13 +167,13 @@ func (mAdapt *UserAdapter) Filter(col string, value interface{}) ([]UserModel, e
 	}
 	defer rows.Close()
 
-	arrangedUsers, err := populateUserModel(rows, true)
+	population, err := populateUserModel(rows, true)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 
-	users := arrangedUsers.([]UserModel)
+	users := population.([]UserModel)
 	return users, nil
 }
 
@@ -190,13 +191,13 @@ func (mAdapt *UserAdapter) List() ([]UserModel, error) {
 	}
 	defer rows.Close()
 	
-	arrangedUsers, err := populateUserModel(rows, true)
+	population, err := populateUserModel(rows, true)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 
-	users := arrangedUsers.([]UserModel)
+	users := population.([]UserModel)
 	return users, nil
 }
 
