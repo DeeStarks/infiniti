@@ -49,7 +49,7 @@ func TestPermissionCreate(t *testing.T) {
 		createdIds = append(createdIds, permObj.Id)
 
 		if permObj.TableId != test.table_id && permObj.Method != test.method {
-			t.Errorf("Expected:\n    Table Id: %d\n    Method: %s\nGot:\n    Table Id: %d\n    Method: %s\n", 
+			t.Errorf("Expected:\n\tTable Id: %d\n\tMethod: %s\nGot:\n\tTable Id: %d\n\tMethod: %s\n", 
 				test.table_id, test.method, permObj.TableId, permObj.Method)
 		}
 	}
@@ -117,7 +117,7 @@ func TestPermissionUpdate(t *testing.T) {
 		createdIds = append(createdIds, updatedObj.Id)
 
 		if updatedObj.TableId != testCases[1][i].table_id && updatedObj.Method != testCases[1][i].method {
-			t.Errorf("Expected:\n    Table Id: %d\n    Method: %s\nGot:\n    Table Id: %d\n    Method: %s\n", 
+			t.Errorf("Expected:\n\tTable Id: %d\n\tMethod: %s\nGot:\n\tTable Id: %d\n\tMethod: %s\n", 
 				testCases[1][i].table_id, testCases[1][i].method, updatedObj.TableId, updatedObj.Method)
 		}
 	}
@@ -170,7 +170,7 @@ func TestPermissionDelete(t *testing.T) {
 			t.Error(err)
 		}
 		if obj.Id != createdObj.Id {
-			t.Errorf("Expected to delete:\n    Id: %d\nGot:\n    Id: %d\n", createdObj.Id, obj.Id)
+			t.Errorf("Expected to delete:\n\tId: %d\nGot:\n\tId: %d\n", createdObj.Id, obj.Id)
 		}
 	}
 }
