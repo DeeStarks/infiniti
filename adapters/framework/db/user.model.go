@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
-	global "github.com/deestarks/infiniti/adapters/framework/db/global"
+	constants "github.com/deestarks/infiniti/adapters/framework/db/constants"
 )
 
 type (
@@ -62,9 +62,9 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 	)
 
 	// To prevent duplicates of the foreign keys,
-	// we will store every ids in the "global.PreviousIdHits" map
-	permissionHits 	:= make(global.PreviousIdHits)
-	userGroupHits 	:= make(global.PreviousIdHits)
+	// we will store every ids in the "constants.PreviousIdHits" map
+	permissionHits 	:= make(constants.PreviousIdHits)
+	userGroupHits 	:= make(constants.PreviousIdHits)
 
 	for row.Next() {
 		if err := row.Scan(
@@ -99,8 +99,8 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 				}
 				tempModel = SingleModel
 
-				permissionHits 	= make(global.PreviousIdHits)
-				userGroupHits 	= make(global.PreviousIdHits)
+				permissionHits 	= make(constants.PreviousIdHits)
+				userGroupHits 	= make(constants.PreviousIdHits)
 			} else {
 				if !permissionHits[permission.Id] && permission.Id != 0 { // If the permission has not been hit and the permission is not null
 					tempModel.UserPermissions = append(tempModel.UserPermissions, permission)

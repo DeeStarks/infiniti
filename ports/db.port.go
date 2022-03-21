@@ -7,7 +7,7 @@ import (
 type DBPort interface {
 	CloseDBConnection() 			error
 	
-	// Add models here
+	// DB Adapters
 	NewUserAdapter() 				*db.UserAdapter
 	NewPermissionsAdapter() 		*db.PermissionsAdapter // permissions
 	NewAccountTypeAdapter() 		*db.AccountTypeAdapter // account types
