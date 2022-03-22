@@ -1,11 +1,7 @@
 package core
 
-import (
-	"github.com/deestarks/infiniti/ports"
-)
-
 type CoreApplication struct {}
 
-func NewCoreApplication() ports.CoreAppPort {
+func NewCoreApplication() CoreAppPort {
 	return CoreApplication{}
 }

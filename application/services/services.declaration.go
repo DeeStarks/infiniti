@@ -1,17 +1,17 @@
 package services
 
 import (
-	"github.com/deestarks/infiniti/ports"
+	"github.com/deestarks/infiniti/adapters/framework/db"
 	"github.com/deestarks/infiniti/application/core"
 )
 
 type Service struct {
-	dbPort 		ports.DBPort
-	corePort 	ports.CoreAppPort
+	dbPort 		db.DBPort
+	corePort 	core.CoreAppPort
 }
 
-func NewServices(dbPort ports.DBPort) ports.AppServicesPort {
-	return Service{
+func NewServices(dbPort db.DBPort) AppServicesPort {
+	return &Service{
 		dbPort: 	dbPort,
 		corePort: 	core.NewCoreApplication(),
 	}
