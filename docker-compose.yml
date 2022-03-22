@@ -1,5 +1,15 @@
 version: "3.9"
 services:
+  infiniti-web:
+    build: .
+    ports:
+      - "${HOST_PORT}:${HOST_PORT}"
+    volumes:
+      - .:/infiniti
+    depends_on:
+      - infiniti-db
+    restart: on-failure
+    
   infiniti-db:
     image: postgres:14.2
     volumes:
@@ -10,13 +20,8 @@ services:
       - POSTGRES_DB=${DB_NAME}
     ports:
       - "5432:5432"
-    restart: always
-  infiniti-web:
-    build: .
-    ports:
-      - "${HOST_PORT}:${HOST_PORT}"
-    volumes:
-      - .:/infiniti
-    depends_on:
-      - infiniti-db
-    restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:5432"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
