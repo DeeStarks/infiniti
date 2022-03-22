@@ -24,9 +24,11 @@ func RegisterRoutes(appPort services.AppServicesPort) mux.Router {
 	r := &handlerRouter{subRouter}
 	r.routes(handlers)
 
-	// Logger middleware
-	r.router.Use(middleware.Logger) // Log each request
-	r.router.Use(middleware.TypeApplicationJSON) // Set content-type to JSON
+	// Middleware registration
+	r.router.Use(
+		middleware.Logger, // Logger every requests
+		middleware.TypeApplicationJSON, // Set content-type to application/json
+	)
 	
 	return *r.router
 }
