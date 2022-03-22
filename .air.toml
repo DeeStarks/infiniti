@@ -4,7 +4,6 @@ tmp_dir = "tmp"
 [build]
 cmd = "go build -o ./bin/infiniti ./cmd/main.go"
 bin = "./bin/infiniti"
-full_bin = "APP_ENV=dev APP_USER=air ./bin/infiniti"
 include_ext = ["go", "env"]
 exclude_dir = ["bin", "tmp", "vol"]
 include_dir = []

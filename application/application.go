@@ -6,13 +6,13 @@ import (
 )
 
 type Application struct {
-	db	 		db.DBPort
-	services 	services.AppServicesPort
+	DBPort	 	db.DBPort
+	Services 	services.AppServicesPort
 }
 
 func NewApplication(dbPort db.DBPort) *Application {
 	return &Application{
-		db: 		dbPort,
-		services: 	services.NewServices(dbPort),
+		DBPort: 	dbPort,
+		Services: 	services.NewServices(dbPort),
 	}
 }
