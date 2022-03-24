@@ -1,3 +1,7 @@
 package constants
 
-type ServiceReturnType map[string]interface{}
+type (
+	// Return types
+	ServiceStructReturnType 		map[string]interface{}
+	ServiceStructSliceReturnType 	[]map[string]interface{}
+)

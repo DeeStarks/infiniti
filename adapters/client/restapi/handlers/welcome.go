@@ -7,7 +7,7 @@ import (
 
 func (h *Handler) Welcome(w http.ResponseWriter, r *http.Request) {
 	jsonWelcome := map[string]string{
-		"status": "success",
+		"status": http.StatusText(http.StatusOK),
 		"message": "Welcome to Infiniti Bank API",
 	}
 	jsonRpr, err := json.Marshal(jsonWelcome)
