@@ -52,12 +52,12 @@ func main() {
         IdleTimeout:  	time.Second * 60,
         Handler: 		&router,
     }
-	utils.LogMessage(fmt.Sprintf("Server is running on port %s", hostPort))
+	utils.LogMessage("Server is running on port %s", hostPort)
 
     // Run our server in a goroutine so that it doesn't block.
     go func() {
         if err := srv.ListenAndServe(); err != nil {
-            utils.LogMessage(fmt.Sprintf("Error starting server: %s", err))
+            utils.LogMessage("Error starting server: %s", err)
         }
     }()
 
