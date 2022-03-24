@@ -39,8 +39,10 @@ func main() {
 	// Initializing the Application
 	app := application.NewApplication(dbAdapter)
 
-	// Register routes
-	router := handlers.RegisterRoutes(app.Services)
+	// Initializw handlers with the application services,
+	// and register routes
+	handlers := handlers.NewHandler(app.Services)
+	routes := handlers.RegisterRoutes()
 
 	// Setting up the server
 	hostPort := config.GetEnv("HOST_PORT")
@@ -50,7 +52,7 @@ func main() {
         WriteTimeout: 	time.Second * 15,
         ReadTimeout:  	time.Second * 15,
         IdleTimeout:  	time.Second * 60,
-        Handler: 		&router,
+        Handler: 		&routes,
     }
 	utils.LogMessage("Server is running on port %s", hostPort)
 
