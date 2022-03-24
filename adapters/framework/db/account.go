@@ -11,7 +11,7 @@ type (
 		Id				int		`json:"id"`
 		UserId 			int		`json:"user_id"`
 		AccountTypeId 	int		`json:"account_type_id"`
-		AccountNumber 	uint64	`json:"account_number"`
+		AccountNumber 	string	`json:"account_number"`
 		Balance 		float64	`json:"balance"`
 		CurrencyId 		int		`json:"currency_id"`
 	}

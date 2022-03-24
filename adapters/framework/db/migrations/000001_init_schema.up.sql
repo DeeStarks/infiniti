@@ -58,7 +58,7 @@ CREATE TABLE "user_accounts" (
   "id" bigserial PRIMARY KEY,
   "user_id" int NOT NULL,
   "account_type_id" int,
-  "account_number" bigint UNIQUE NOT NULL,
+  "account_number" varchar UNIQUE NOT NULL,
   "balance" double PRECISION DEFAULT 0.0,
   "currency_id" int,
   "created_at" timestamptz DEFAULT (now())
