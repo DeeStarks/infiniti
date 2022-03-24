@@ -4,36 +4,77 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/deestarks/infiniti/adapters/client/restapi/middleware"
-	"github.com/deestarks/infiniti/application/services"
 )
 
-type handlerRouter struct {
+type Router struct {
 	router *mux.Router
 }
 
-func RegisterRoutes(appPort services.AppServicesPort) mux.Router {
-	// Initialize handlers
-	handlers := NewHandler(appPort)
-
-	// Initialize router
+// Router registrar
+func (handlers *Handler) RegisterRoutes() mux.Router {
 	router := mux.NewRouter()
+
 	// Prefix route with /api/v1
 	subRouter := router.PathPrefix("/api/v1").Subrouter()
 
 	// Routes registration
-	r := &handlerRouter{subRouter}
-	r.routes(handlers)
+	r := &Router{subRouter}
+	r.collectiveRoutes(handlers)
+	r.userRoutes(handlers)
+	r.staffRoutes(handlers)
+	r.adminRoutes(handlers)
 
-	// Middleware registration
+	// General middleware registration
 	r.router.Use(
-		middleware.Logger, // Logger every requests
 		middleware.TypeApplicationJSON, // Set content-type to application/json
+		middleware.Logger, // Log requests
 	)
-	
 	return *r.router
 }
 
-// Register routes here
-func (r *handlerRouter) routes(h *Handler) {
-	r.router.HandleFunc("/", h.Welcome).Methods("GET").Name("welcome")
+// Register unprotected routes
+func (r *Router) collectiveRoutes(h *Handler) {
+	subrouter := r.router.PathPrefix("/").Subrouter()
+
+	// Routes here
+	subrouter.HandleFunc("/", h.Welcome).Methods("GET").Name("welcome")
+
+
+	// Middleware registration
+	subrouter.Use()
+}
+
+// Register user protected routes
+func (r *Router) userRoutes(h *Handler) {
+	subrouter := r.router.PathPrefix("/user").Subrouter()
+
+	// Routes here
+	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("list-account")
+	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("single-account")
+
+
+	// Middleware registration
+	subrouter.Use()
+}
+
+// Register staff protected routes
+func (r *Router) staffRoutes(h *Handler) {
+	subrouter := r.router.PathPrefix("/staff").Subrouter()
+
+	// Routes here
+
+
+	// Middleware registration
+	subrouter.Use()
+}
+
+// Register admin protected routes
+func (r *Router) adminRoutes(h *Handler) {
+	subrouter := r.router.PathPrefix("/admin").Subrouter()
+
+	// Routes here
+
+
+	// Middleware registration
+	subrouter.Use()
 }
