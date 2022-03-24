@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -49,7 +48,6 @@ func (mAdapt *AccountTypeAdapter) Create(data map[string]interface{}) (*AccountT
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&accountType.Id, &accountType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &accountType, nil
@@ -75,7 +73,6 @@ func (mAdapt *AccountTypeAdapter) Update(col string, colValue interface{}, data 
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&accountType.Id, &accountType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &accountType, nil
@@ -93,7 +90,6 @@ func (mAdapt *AccountTypeAdapter) Delete(colName string, value interface{}) (*Ac
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&accountType.Id, &accountType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &accountType, nil
@@ -112,7 +108,6 @@ func (mAdapt *AccountTypeAdapter) Get(colName string, value interface{}) (*Accou
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&accountType.Id, &accountType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &accountType, nil
@@ -126,7 +121,6 @@ func (mAdapt *AccountTypeAdapter) Filter(colName string, value interface{}) (*[]
 	query := fmt.Sprintf("SELECT id, name FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -135,7 +129,6 @@ func (mAdapt *AccountTypeAdapter) Filter(colName string, value interface{}) (*[]
 		var accountType AccountTypeModel
 		err := rows.Scan(&accountType.Id, &accountType.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		accountTypes = append(accountTypes, accountType)
@@ -151,7 +144,6 @@ func (mAdapt *AccountTypeAdapter) List() (*[]AccountTypeModel, error) {
 	query := fmt.Sprintf("SELECT id, name FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -160,7 +152,6 @@ func (mAdapt *AccountTypeAdapter) List() (*[]AccountTypeModel, error) {
 		var accountType AccountTypeModel
 		err := rows.Scan(&accountType.Id, &accountType.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		accountTypes = append(accountTypes, accountType)

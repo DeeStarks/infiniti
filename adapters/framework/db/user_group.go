@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -49,7 +48,6 @@ func (mAdapt *UserGroupAdapter) Create(data map[string]interface{}) (*UserGroupM
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&userGroup.GroupId, &userGroup.UserId)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &userGroup, nil
@@ -75,7 +73,6 @@ func (mAdapt *UserGroupAdapter) Update(col string, colValue interface{}, data ma
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&userGroup.GroupId, &userGroup.UserId)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &userGroup, nil
@@ -93,7 +90,6 @@ func (mAdapt *UserGroupAdapter) Delete(colName string, value interface{}) (*User
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&userGroup.GroupId, &userGroup.UserId)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &userGroup, nil
@@ -112,7 +108,6 @@ func (mAdapt *UserGroupAdapter) Get(colName string, value interface{}) (*UserGro
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&userGroup.GroupId, &userGroup.UserId)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &userGroup, nil
@@ -126,7 +121,6 @@ func (mAdapt *UserGroupAdapter) Filter(colName string, value interface{}) (*[]Us
 	query := fmt.Sprintf("SELECT group_id, user_id FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -135,7 +129,6 @@ func (mAdapt *UserGroupAdapter) Filter(colName string, value interface{}) (*[]Us
 		var userGroup UserGroupModel
 		err := rows.Scan(&userGroup.GroupId, &userGroup.UserId)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		userGroups = append(userGroups, userGroup)
@@ -151,7 +144,6 @@ func (mAdapt *UserGroupAdapter) List() (*[]UserGroupModel, error) {
 	query := fmt.Sprintf("SELECT group_id, user_id FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -160,7 +152,6 @@ func (mAdapt *UserGroupAdapter) List() (*[]UserGroupModel, error) {
 		var userGroup UserGroupModel
 		err := rows.Scan(&userGroup.GroupId, &userGroup.UserId)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		userGroups = append(userGroups, userGroup)

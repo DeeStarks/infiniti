@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -50,7 +49,6 @@ func (mAdapt *CurrencyAdapter) Create(data map[string]interface{}) (*CurrencyMod
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &currency, nil
@@ -76,7 +74,6 @@ func (mAdapt *CurrencyAdapter) Update(col string, colValue interface{}, data map
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &currency, nil
@@ -94,7 +91,6 @@ func (mAdapt *CurrencyAdapter) Delete(colName string, value interface{}) (*Curre
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &currency, nil
@@ -113,7 +109,6 @@ func (mAdapt *CurrencyAdapter) Get(colName string, value interface{}) (*Currency
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &currency, nil
@@ -127,7 +122,6 @@ func (mAdapt *CurrencyAdapter) Filter(colName string, value interface{}) (*[]Cur
 	query := fmt.Sprintf("SELECT id, name, symbol FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -136,7 +130,6 @@ func (mAdapt *CurrencyAdapter) Filter(colName string, value interface{}) (*[]Cur
 		var currency CurrencyModel
 		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		currencies = append(currencies, currency)
@@ -152,7 +145,6 @@ func (mAdapt *CurrencyAdapter) List() (*[]CurrencyModel, error) {
 	query := fmt.Sprintf("SELECT id, name, symbol FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -161,7 +153,6 @@ func (mAdapt *CurrencyAdapter) List() (*[]CurrencyModel, error) {
 		var currency CurrencyModel
 		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		currencies = append(currencies, currency)

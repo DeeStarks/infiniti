@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
@@ -77,7 +76,6 @@ func populateUserModel(row *sql.Rows, many bool) (interface{}, error) {
 			&permission.Id, &permission.UserId, &permission.PermissionId,
 			&userGroup.UserId, &userGroup.GroupId,
 		); err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 
@@ -139,14 +137,12 @@ func (mAdapt *UserAdapter) Get(col string, value interface{}) (UserModel, error)
 
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return UserModel{}, err
 	}
 	defer rows.Close()
 
 	population, err := populateUserModel(rows, false)
 	if err != nil {
-		log.Fatal(err)
 		return UserModel{}, err
 	}
 
@@ -162,14 +158,12 @@ func (mAdapt *UserAdapter) Filter(col string, value interface{}) ([]UserModel, e
 	`, mAdapt.tableName, col)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
 
 	population, err := populateUserModel(rows, true)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
@@ -186,14 +180,12 @@ func (mAdapt *UserAdapter) List() ([]UserModel, error) {
 	`, selection, mAdapt.tableName, selectionJoin)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
 	
 	population, err := populateUserModel(rows, true)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
@@ -227,7 +219,6 @@ func (mAdapt *UserAdapter) Create(data map[string]interface{}) (UserModel, error
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return UserModel{}, err
 	}
 	return user, nil
@@ -256,7 +247,6 @@ func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[str
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return UserModel{}, err
 	}
 	return user, nil
@@ -277,7 +267,6 @@ func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (UserModel,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return UserModel{}, err
 	}
 	return user, nil

@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -49,7 +48,6 @@ func (mAdapt *GroupAdapter) Create(data map[string]interface{}) (*GroupModel, er
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&group.Id, &group.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &group, nil
@@ -75,7 +73,6 @@ func (mAdapt *GroupAdapter) Update(col string, colValue interface{}, data map[st
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&group.Id, &group.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &group, nil
@@ -93,7 +90,6 @@ func (mAdapt *GroupAdapter) Delete(colName string, value interface{}) (*GroupMod
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&group.Id, &group.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &group, nil
@@ -114,7 +110,6 @@ func (mAdapt *GroupAdapter) Get(colName string, value interface{}) (*GroupModel,
 	// `, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&group.Id, &group.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &group, nil
@@ -128,7 +123,6 @@ func (mAdapt *GroupAdapter) Filter(colName string, value interface{}) (*[]GroupM
 	query := fmt.Sprintf("SELECT id, name FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -137,7 +131,6 @@ func (mAdapt *GroupAdapter) Filter(colName string, value interface{}) (*[]GroupM
 		var group GroupModel
 		err := rows.Scan(&group.Id, &group.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		groups = append(groups, group)
@@ -154,7 +147,6 @@ func (mAdapt *GroupAdapter) List() (*[]GroupModel, error) {
 	query := fmt.Sprintf("SELECT id, name FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -163,7 +155,6 @@ func (mAdapt *GroupAdapter) List() (*[]GroupModel, error) {
 		var group GroupModel
 		err := rows.Scan(&group.Id, &group.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		groups = append(groups, group)

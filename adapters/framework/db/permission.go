@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -63,7 +62,6 @@ func (mAdapt *PermissionsAdapter) Create(data map[string]interface{}) (*Permissi
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &permission, nil
@@ -90,7 +88,6 @@ func (mAdapt *PermissionsAdapter) Update(col string, colValue interface{}, data 
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &permission, nil
@@ -108,7 +105,6 @@ func (mAdapt *PermissionsAdapter) Delete(colName string, value interface{}) (*Pe
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.TableId, &permission.Method)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &permission, nil
@@ -131,7 +127,6 @@ func (mAdapt *PermissionsAdapter) Get(colName string, value interface{}) (*Permi
 		&permission.Id, &permission.TableId, &permission.Method,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &permission, nil
@@ -145,7 +140,6 @@ func (mAdapt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]
 	query := fmt.Sprintf("SELECT id, table_id, method FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -156,7 +150,6 @@ func (mAdapt *PermissionsAdapter) Filter(colName string, value interface{}) (*[]
 			&permission.Id, &permission.TableId, &permission.Method,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		permissions = append(permissions, permission)
@@ -173,7 +166,6 @@ func (mAdapt *PermissionsAdapter) List() (*[]PermissionsModel, error) {
 	query := fmt.Sprintf("SELECT id, table_id, method FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -184,7 +176,6 @@ func (mAdapt *PermissionsAdapter) List() (*[]PermissionsModel, error) {
 			&permission.Id, &permission.TableId, &permission.Method,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		permissions = append(permissions, permission)

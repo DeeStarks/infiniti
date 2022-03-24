@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -49,7 +48,6 @@ func (mAdapt *TransactionTypeAdapter) Create(data map[string]interface{}) (*Tran
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&transactionType.Id, &transactionType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transactionType, nil
@@ -75,7 +73,6 @@ func (mAdapt *TransactionTypeAdapter) Update(col string, colValue interface{}, d
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&transactionType.Id, &transactionType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transactionType, nil
@@ -93,7 +90,6 @@ func (mAdapt *TransactionTypeAdapter) Delete(colName string, value interface{}) 
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&transactionType.Id, &transactionType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transactionType, nil
@@ -112,7 +108,6 @@ func (mAdapt *TransactionTypeAdapter) Get(colName string, value interface{}) (*T
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&transactionType.Id, &transactionType.Name)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transactionType, nil
@@ -126,7 +121,6 @@ func (mAdapt *TransactionTypeAdapter) Filter(colName string, value interface{}) 
 	query := fmt.Sprintf("SELECT id, name FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -135,7 +129,6 @@ func (mAdapt *TransactionTypeAdapter) Filter(colName string, value interface{}) 
 		var transactionType TransactionTypeModel
 		err := rows.Scan(&transactionType.Id, &transactionType.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		transactionTypes = append(transactionTypes, transactionType)
@@ -151,7 +144,6 @@ func (mAdapt *TransactionTypeAdapter) List() (*[]TransactionTypeModel, error) {
 	query := fmt.Sprintf("SELECT id, name FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -160,7 +152,6 @@ func (mAdapt *TransactionTypeAdapter) List() (*[]TransactionTypeModel, error) {
 		var transactionType TransactionTypeModel
 		err := rows.Scan(&transactionType.Id, &transactionType.Name)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		transactionTypes = append(transactionTypes, transactionType)

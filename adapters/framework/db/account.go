@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/deestarks/infiniti/utils"
 )
@@ -56,7 +55,6 @@ func (mAdapt *AccountAdapter) Create(data map[string]interface{}) (*AccountModel
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &account, nil
@@ -85,7 +83,6 @@ func (mAdapt *AccountAdapter) Update(col string, colValue interface{}, data map[
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &account, nil
@@ -106,7 +103,6 @@ func (mAdapt *AccountAdapter) Delete(colName string, value interface{}) (*Accoun
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &account, nil
@@ -128,7 +124,6 @@ func (mAdapt *AccountAdapter) Get(colName string, value interface{}) (*AccountMo
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &account, nil
@@ -142,7 +137,6 @@ func (mAdapt *AccountAdapter) Filter(colName string, value interface{}) (*[]Acco
 	query := fmt.Sprintf("SELECT id, user_id, account_type_id, account_number, balance, currency_id FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -154,7 +148,6 @@ func (mAdapt *AccountAdapter) Filter(colName string, value interface{}) (*[]Acco
 			&account.AccountNumber, &account.Balance, &account.CurrencyId,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		accounts = append(accounts, account)
@@ -170,7 +163,6 @@ func (mAdapt *AccountAdapter) List() (*[]AccountModel, error) {
 	query := fmt.Sprintf("SELECT id, user_id, account_type_id, account_number, balance, currency_id FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -182,7 +174,6 @@ func (mAdapt *AccountAdapter) List() (*[]AccountModel, error) {
 			&account.AccountNumber, &account.Balance, &account.CurrencyId,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		accounts = append(accounts, account)

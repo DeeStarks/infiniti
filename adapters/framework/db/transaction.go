@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
@@ -59,7 +58,6 @@ func (mAdapt *TransactionAdapter) Create(data map[string]interface{}) (*Transact
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transaction, nil
@@ -88,7 +86,6 @@ func (mAdapt *TransactionAdapter) Update(col string, colValue interface{}, data 
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transaction, nil
@@ -109,7 +106,6 @@ func (mAdapt *TransactionAdapter) Delete(colName string, value interface{}) (*Tr
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transaction, nil
@@ -131,7 +127,6 @@ func (mAdapt *TransactionAdapter) Get(colName string, value interface{}) (*Trans
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	return &transaction, nil
@@ -145,7 +140,6 @@ func (mAdapt *TransactionAdapter) Filter(colName string, value interface{}) (*[]
 	query := fmt.Sprintf("SELECT id, user_id, transaction_type_id, amount, sender_id, reciever_id, remark, created_at FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -157,7 +151,6 @@ func (mAdapt *TransactionAdapter) Filter(colName string, value interface{}) (*[]
 			&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		transactions = append(transactions, transaction)
@@ -173,7 +166,6 @@ func (mAdapt *TransactionAdapter) List() (*[]TransactionModel, error) {
 	query := fmt.Sprintf("SELECT id, user_id, transaction_type_id, amount, sender_id, reciever_id, remark, created_at FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -185,7 +177,6 @@ func (mAdapt *TransactionAdapter) List() (*[]TransactionModel, error) {
 			&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 		)
 		if err != nil {
-			log.Fatal(err)
 			return nil, err
 		}
 		transactions = append(transactions, transaction)
