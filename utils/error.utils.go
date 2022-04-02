@@ -1,27 +1,14 @@
 package utils
 
-type (
-	appError struct {
-		Message string `json:"message"`
-		Status  int    `json:"status"`
-	}
-	AppError interface {
-		Error() 		string
-		StatusCode()	int
-	}
-)
-
-func NewAppError(message string, status int) AppError {
-	return appError{
-		Message: message,
-		Status:  status,
-	}
+type RequestError struct {
+	Code int
+	Err error
 }
 
-func (e appError) Error() string {
-	return e.Message
+func (r *RequestError) Error() string {
+	return r.Err.Error()
 }
 
-func (e appError) StatusCode() int {
-	return e.Status
+func (r *RequestError) StatusCode() int {
+	return r.Code
 }
