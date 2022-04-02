@@ -13,45 +13,32 @@ import (
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	accts, err := h.appPort.NewAccountService().ListAccounts()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		res, _ := templates.Template(err.StatusCode(), err.Error(), nil) // If error occurs here, it's a JSON marshal error
+		w.WriteHeader(err.StatusCode())
+		w.Write([]byte(res))
 		return
 	}
 
-	jsonRpr, err := json.Marshal(
-		templates.Success(accts, "Accounts successfully retrieved"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(jsonRpr))
+	res, _ := templates.Template(http.StatusOK, "Accounts successfully retrieved", accts) // If error occurs here, it's a JSON marshal error
+	w.Write([]byte(res))
 }
 
 func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the URL variables
 	idVar, ok := vars["id"] // Get the id variable
 	if !ok {
-		res := templates.ErrorBadRequest("Account ID is required")
-		jsonRpr, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		res, _ := templates.Template(http.StatusBadRequest, "Missing \"id\" variable", nil)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(jsonRpr))
+		w.Write([]byte(res))
 		return
 	}
 
 	// Cast the id variable to an int
 	id, err := strconv.Atoi(idVar)
 	if err != nil {
-		res := templates.ErrorBadRequest("Account ID must be an integer")
-		jsonRpr, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		res, _ := templates.Template(http.StatusBadRequest, "Invalid \"id\" variable. Must be an integer", nil)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(jsonRpr))
+		w.Write([]byte(res))
 		return
 	}
 
@@ -59,59 +46,29 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		acct, err := h.appPort.NewAccountService().GetAccount("id", id, []string{})
 		if err != nil {
-			res := templates.ErrorNotFound("Account not found")
-			jsonRpr, err := json.Marshal(res)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(jsonRpr))
+			res, _ := templates.Template(err.StatusCode(), err.Error(), nil)
+			w.WriteHeader(err.StatusCode())
+			w.Write([]byte(res))
 			return
 		}
 	
-		jsonRpr, err := json.Marshal(
-			templates.Success(acct, "Account successfully retrieved"))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write([]byte(jsonRpr))
+		res, _ := templates.Template(http.StatusOK, "Account successfully retrieved", acct)
+		w.Write([]byte(res))
 	case "PUT":
 		data := make(map[string]interface{})
 		err := json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
-			res := templates.ErrorBadRequest("Invalid Data")
-			jsonRpr, err := json.Marshal(res)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+			res, _ := templates.Template(http.StatusBadRequest, "Invalid JSON data", nil)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(jsonRpr))
+			w.Write([]byte(res))
 			return
 		}
+		fmt.Println(data)
 		// TODO: Validate data
 		
-	case "DELETE":
-		// TODO: Implement DELETE
-
-		jsonRpr, err := json.Marshal(
-			templates.Success(nil, "Account successfully deleted"))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write([]byte(jsonRpr))
 	default:
-		res := templates.ErrorMethodNotAllowed(
-			fmt.Sprintf("Method %s not allowed", r.Method))
-		jsonRpr, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		res, _ := templates.Template(http.StatusMethodNotAllowed, "Method not allowed", nil)
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(jsonRpr))
+		w.Write([]byte(res))
 	}
 }
