@@ -38,6 +38,7 @@ func (r *Router) collectiveRoutes(h *Handler) {
 
 	// Routes here
 	subrouter.HandleFunc("/", h.Welcome).Methods("GET").Name("collective:welcome")
+	subrouter.HandleFunc("/signup", h.Register).Name("collective:signup")
 
 
 	// Middleware registration

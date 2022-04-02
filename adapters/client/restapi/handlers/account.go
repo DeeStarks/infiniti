@@ -7,12 +7,13 @@ import (
 	"strconv"
 
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
+	"github.com/deestarks/infiniti/utils"
 	"github.com/gorilla/mux"
 )
 
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	accts, err := h.appPort.NewAccountService().ListAccounts()
-	if err != nil {
+	if err, ok := err.(*utils.RequestError); ok {
 		res, _ := templates.Template(err.StatusCode(), err.Error(), nil) // If error occurs here, it's a JSON marshal error
 		w.WriteHeader(err.StatusCode())
 		w.Write([]byte(res))
@@ -45,7 +46,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		acct, err := h.appPort.NewAccountService().GetAccount("id", id, []string{})
-		if err != nil {
+		if err, ok := err.(*utils.RequestError); ok {
 			res, _ := templates.Template(err.StatusCode(), err.Error(), nil)
 			w.WriteHeader(err.StatusCode())
 			w.Write([]byte(res))
@@ -67,7 +68,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 		// TODO: Validate data
 		
 	default:
-		res, _ := templates.Template(http.StatusMethodNotAllowed, "Method not allowed", nil)
+		res, _ := templates.Template(http.StatusMethodNotAllowed, "Accepts only GET and PUT requests", nil)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte(res))
 	}
