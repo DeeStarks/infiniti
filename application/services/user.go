@@ -91,17 +91,13 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 	}
 
 	// Add the user's profile to the returned user
-	returnedUser.Account = *returnedAcct
-
 	// Serialization and return
-	serializedAcct := constants.ServiceStructReturnType(utils.StructToMap(returnedUser))
+	serializedUser := constants.ServiceStructReturnType(utils.StructToMap(returnedUser))
+	serializedAcct := constants.ServiceStructReturnType(utils.StructToMap(returnedAcct))
 
-	// Delete all foreign keys from the returned user, as their values are not populated
-	foriegnKeys := []string{"user_groups", "user_permissions", "account", "account_type", "currency"}
-	for _, key := range foriegnKeys {
-		delete(serializedAcct, key)
-	}
-
+	// Add the account to the user
+	serializedUser["account"] = serializedAcct
+	
 	// Return the user
-	return serializedAcct, nil
+	return serializedUser, nil
 }
