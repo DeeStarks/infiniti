@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deestarks/infiniti/utils"
 	constants "github.com/deestarks/infiniti/adapters/framework/db/constants"
+	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -136,9 +137,9 @@ func (mAdapt *UserAdapter) Get(col string, value interface{}) (UserModel, error)
 	`, selection, mAdapt.tableName, selectionJoin, col)
 
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return UserModel{}, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return UserModel{}, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	population, err := populateUserModel(rows, false)
@@ -157,9 +158,9 @@ func (mAdapt *UserAdapter) Filter(col string, value interface{}) ([]UserModel, e
 		WHERE %s = $1 ORDER BY id ASC
 	`, mAdapt.tableName, col)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	population, err := populateUserModel(rows, true)
@@ -179,9 +180,9 @@ func (mAdapt *UserAdapter) List() ([]UserModel, error) {
 		ORDER BY id ASC
 	`, selection, mAdapt.tableName, selectionJoin)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 	
 	population, err := populateUserModel(rows, true)
@@ -218,9 +219,9 @@ func (mAdapt *UserAdapter) Create(data map[string]interface{}) (UserModel, error
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
-	if err != nil {
-		return UserModel{}, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return UserModel{}, fmt.Errorf("%s", err.Detail)
+    }
 	return user, nil
 }
 
@@ -246,9 +247,9 @@ func (mAdapt *UserAdapter) Update(col string, colValue interface{}, data map[str
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
-	if err != nil {
-		return UserModel{}, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return UserModel{}, fmt.Errorf("%s", err.Detail)
+    }
 	return user, nil
 }
 
@@ -266,8 +267,8 @@ func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (UserModel,
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
-	if err != nil {
-		return UserModel{}, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return UserModel{}, fmt.Errorf("%s", err.Detail)
+    }
 	return user, nil
 }

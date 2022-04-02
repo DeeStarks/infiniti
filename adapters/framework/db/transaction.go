@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -57,9 +58,9 @@ func (mAdapt *TransactionAdapter) Create(data map[string]interface{}) (*Transact
 		&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transaction, nil
 }
 
@@ -85,9 +86,9 @@ func (mAdapt *TransactionAdapter) Update(col string, colValue interface{}, data 
 		&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transaction, nil
 }
 
@@ -105,9 +106,9 @@ func (mAdapt *TransactionAdapter) Delete(colName string, value interface{}) (*Tr
 		&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transaction, nil
 }
 
@@ -126,9 +127,9 @@ func (mAdapt *TransactionAdapter) Get(colName string, value interface{}) (*Trans
 		&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transaction, nil
 }
 
@@ -139,9 +140,9 @@ func (mAdapt *TransactionAdapter) Filter(colName string, value interface{}) (*[]
 	)
 	query := fmt.Sprintf("SELECT id, user_id, transaction_type_id, amount, sender_id, reciever_id, remark, created_at FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -150,8 +151,8 @@ func (mAdapt *TransactionAdapter) Filter(colName string, value interface{}) (*[]
 			&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 			&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 		)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -165,9 +166,9 @@ func (mAdapt *TransactionAdapter) List() (*[]TransactionModel, error) {
 	)
 	query := fmt.Sprintf("SELECT id, user_id, transaction_type_id, amount, sender_id, reciever_id, remark, created_at FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -176,8 +177,8 @@ func (mAdapt *TransactionAdapter) List() (*[]TransactionModel, error) {
 			&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 			&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 		)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		transactions = append(transactions, transaction)
 	}

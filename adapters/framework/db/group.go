@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -47,9 +48,9 @@ func (mAdapt *GroupAdapter) Create(data map[string]interface{}) (*GroupModel, er
 	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&group.Id, &group.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &group, nil
 }
 
@@ -72,9 +73,9 @@ func (mAdapt *GroupAdapter) Update(col string, colValue interface{}, data map[st
 	valArr = append(valArr, colValue)
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&group.Id, &group.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &group, nil
 }
 
@@ -89,9 +90,9 @@ func (mAdapt *GroupAdapter) Delete(colName string, value interface{}) (*GroupMod
 		RETURNING id, name
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&group.Id, &group.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &group, nil
 }
 
@@ -109,9 +110,9 @@ func (mAdapt *GroupAdapter) Get(colName string, value interface{}) (*GroupModel,
 	`, mAdapt.tableName, colName)
 	// `, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&group.Id, &group.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &group, nil
 }
 
@@ -122,17 +123,17 @@ func (mAdapt *GroupAdapter) Filter(colName string, value interface{}) (*[]GroupM
 	)
 	query := fmt.Sprintf("SELECT id, name FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
 		var group GroupModel
 		err := rows.Scan(&group.Id, &group.Name)
-		if err != nil {
-			return nil, err
-		}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 		groups = append(groups, group)
 	}
 	return &groups, nil
@@ -146,17 +147,17 @@ func (mAdapt *GroupAdapter) List() (*[]GroupModel, error) {
 	)
 	query := fmt.Sprintf("SELECT id, name FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
 		var group GroupModel
 		err := rows.Scan(&group.Id, &group.Name)
-		if err != nil {
-			return nil, err
-		}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 		groups = append(groups, group)
 	}
 	return &groups, nil

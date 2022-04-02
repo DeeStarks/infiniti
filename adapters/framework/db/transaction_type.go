@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -47,9 +48,9 @@ func (mAdapt *TransactionTypeAdapter) Create(data map[string]interface{}) (*Tran
 	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&transactionType.Id, &transactionType.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transactionType, nil
 }
 
@@ -72,9 +73,9 @@ func (mAdapt *TransactionTypeAdapter) Update(col string, colValue interface{}, d
 	valArr = append(valArr, colValue)
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&transactionType.Id, &transactionType.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transactionType, nil
 }
 
@@ -89,9 +90,9 @@ func (mAdapt *TransactionTypeAdapter) Delete(colName string, value interface{}) 
 		RETURNING id, name
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&transactionType.Id, &transactionType.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transactionType, nil
 }
 
@@ -107,9 +108,9 @@ func (mAdapt *TransactionTypeAdapter) Get(colName string, value interface{}) (*T
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&transactionType.Id, &transactionType.Name)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &transactionType, nil
 }
 
@@ -120,16 +121,16 @@ func (mAdapt *TransactionTypeAdapter) Filter(colName string, value interface{}) 
 	)
 	query := fmt.Sprintf("SELECT id, name FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
 		var transactionType TransactionTypeModel
 		err := rows.Scan(&transactionType.Id, &transactionType.Name)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		transactionTypes = append(transactionTypes, transactionType)
 	}
@@ -143,16 +144,16 @@ func (mAdapt *TransactionTypeAdapter) List() (*[]TransactionTypeModel, error) {
 	)
 	query := fmt.Sprintf("SELECT id, name FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
 		var transactionType TransactionTypeModel
 		err := rows.Scan(&transactionType.Id, &transactionType.Name)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		transactionTypes = append(transactionTypes, transactionType)
 	}

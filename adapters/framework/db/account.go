@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -54,9 +55,9 @@ func (mAdapt *AccountAdapter) Create(data map[string]interface{}) (*AccountModel
 		&account.Id, &account.UserId, &account.AccountTypeId,
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &account, nil
 }
 
@@ -82,9 +83,9 @@ func (mAdapt *AccountAdapter) Update(col string, colValue interface{}, data map[
 		&account.Id, &account.UserId, &account.AccountTypeId,
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &account, nil
 }
 
@@ -102,9 +103,9 @@ func (mAdapt *AccountAdapter) Delete(colName string, value interface{}) (*Accoun
 		&account.Id, &account.UserId, &account.AccountTypeId,
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &account, nil
 }
 
@@ -123,9 +124,9 @@ func (mAdapt *AccountAdapter) Get(colName string, value interface{}) (*AccountMo
 		&account.Id, &account.UserId, &account.AccountTypeId,
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &account, nil
 }
 
@@ -136,9 +137,9 @@ func (mAdapt *AccountAdapter) Filter(colName string, value interface{}) (*[]Acco
 	)
 	query := fmt.Sprintf("SELECT id, user_id, account_type_id, account_number, balance, currency_id FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -147,9 +148,9 @@ func (mAdapt *AccountAdapter) Filter(colName string, value interface{}) (*[]Acco
 			&account.Id, &account.UserId, &account.AccountTypeId,
 			&account.AccountNumber, &account.Balance, &account.CurrencyId,
 		)
-		if err != nil {
-			return nil, err
-		}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 		accounts = append(accounts, account)
 	}
 	return &accounts, nil
@@ -162,9 +163,9 @@ func (mAdapt *AccountAdapter) List() (*[]AccountModel, error) {
 	)
 	query := fmt.Sprintf("SELECT id, user_id, account_type_id, account_number, balance, currency_id FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -173,9 +174,9 @@ func (mAdapt *AccountAdapter) List() (*[]AccountModel, error) {
 			&account.Id, &account.UserId, &account.AccountTypeId,
 			&account.AccountNumber, &account.Balance, &account.CurrencyId,
 		)
-		if err != nil {
-			return nil, err
-		}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 		accounts = append(accounts, account)
 	}
 	return &accounts, nil

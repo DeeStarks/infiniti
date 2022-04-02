@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/lib/pq"
 )
 
 type (
@@ -48,9 +49,9 @@ func (mAdapt *UserPermissionsAdapter) Create(data map[string]interface{}) (*User
 	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.UserId, &permission.PermissionId)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &permission, nil
 }
 
@@ -73,9 +74,9 @@ func (mAdapt *UserPermissionsAdapter) Update(col string, colValue interface{}, d
 	valArr = append(valArr, colValue)
 
 	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&permission.Id, &permission.UserId, &permission.PermissionId)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &permission, nil
 }
 
@@ -90,9 +91,9 @@ func (mAdapt *UserPermissionsAdapter) Delete(colName string, value interface{}) 
 		RETURNING id, user_id, permission_id
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&permission.Id, &permission.UserId, &permission.PermissionId)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &permission, nil
 }
 
@@ -112,9 +113,9 @@ func (mAdapt *UserPermissionsAdapter) Get(colName string, value interface{}) (*U
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(
 		&permission.Id, &permission.UserId, &permission.PermissionId,
 	)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	return &permission, nil
 }
 
@@ -125,9 +126,9 @@ func (mAdapt *UserPermissionsAdapter) Filter(colName string, value interface{}) 
 	)
 	query := fmt.Sprintf("SELECT id, user_id, permission_id FROM %s WHERE %s = $1", mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -135,8 +136,8 @@ func (mAdapt *UserPermissionsAdapter) Filter(colName string, value interface{}) 
 		err := rows.Scan(
 			&permission.Id, &permission.UserId, &permission.PermissionId,
 		)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		permissions = append(permissions, permission)
 	}
@@ -151,9 +152,9 @@ func (mAdapt *UserPermissionsAdapter) List() (*[]UserPermissionsModel, error) {
 	)
 	query := fmt.Sprintf("SELECT id, user_id, permission_id FROM %s", mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+    if err, ok := err.(*pq.Error); ok {
+		return nil, fmt.Errorf("%s", err.Detail)
+    }
 	defer rows.Close()
 
 	for rows.Next() {
@@ -161,8 +162,8 @@ func (mAdapt *UserPermissionsAdapter) List() (*[]UserPermissionsModel, error) {
 		err := rows.Scan(
 			&permission.Id, &permission.UserId, &permission.PermissionId,
 		)
-		if err != nil {
-			return nil, err
+		if err, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf("%s", err.Detail)
 		}
 		permissions = append(permissions, permission)
 	}

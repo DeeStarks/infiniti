@@ -1,0 +1,1 @@
+DELETE FROM "currencies" WHERE "name" IN ('Bitcoin', 'Naira', 'Dollar', 'Euro', 'Pound', 'Yen', 'Yuan', 'Rupee');
