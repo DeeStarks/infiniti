@@ -109,7 +109,6 @@ func (mAdapt *UserPermissionsAdapter) Get(colName string, value interface{}) (*U
 		FROM %s
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
-	// `, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(
 		&permission.Id, &permission.UserId, &permission.PermissionId,
 	)
