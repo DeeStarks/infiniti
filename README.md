@@ -9,7 +9,7 @@ NB: Make sure to have docker installed and running. For docker installation, see
 - `git clone https://gihub.com/deestarks/infiniti.git`
 - `cd infiniti`
 - Create a `.env` file in the root directory of the project.
-- Copy the content of the `.env.example` file to the `.env` file. Change the values of the variables according to your choice or leave them as they are.
+- Copy the content of the `.env.example` file to the `.env` file. Change the values of the variables according to your choice or leave them as they are. ***(Important: the `RESTAPI_SECRET` variable is important. You can generate one using `make keygen` command)***
 - `make migrate-up` - Migrates the database schema.
 - `make start` - To start the application.
 
@@ -29,6 +29,7 @@ App will be available at `http://localhost:8000`. `curl http://localhost:8000/ap
 10. `make shell` - Opens an interactive shell inside the app's container.
 11. `make test` - Recursively run all tests OR pass a directory as an argument to run the tests in a directory (e.g. `make test TESTDIR=github.com/deestarks/infiniti/adapters/framework/db` to run the tests in the `db` directory).
 12. `make db-shell` - Opens an interactive shell for the database.
+13. `make keygen` - Generates a random 32-character string.
 
 
 ### Project structure

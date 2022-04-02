@@ -11,6 +11,9 @@ db-shell:
 start:
 	@docker-compose up
 
+keygen:
+	@docker-compose exec infiniti-web openssl rand -hex 32 | xargs
+
 TESTDIR := .
 test:
 	@echo "$(LINE_THROUGH)\nRunning tests..."; \
