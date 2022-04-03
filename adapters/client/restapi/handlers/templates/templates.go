@@ -35,6 +35,12 @@ func Template(code int, message string, data interface{}) ([]byte, error) {
 			"message": message,
 		}
 		return json.Marshal(res)
+	case http.StatusUnauthorized:
+		res := map[string]interface{}{
+			"status": http.StatusText(http.StatusUnauthorized),
+			"message": message,
+		}
+		return json.Marshal(res)
 	// TODO: Add more cases here
 
 
