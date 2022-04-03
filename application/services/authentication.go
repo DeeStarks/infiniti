@@ -6,6 +6,7 @@ import (
 
 	"github.com/deestarks/infiniti/adapters/framework/db"
 	"github.com/deestarks/infiniti/application/core"
+	"github.com/deestarks/infiniti/application/services/constants"
 	"github.com/deestarks/infiniti/utils"
 )
 
@@ -21,7 +22,7 @@ func (service *Service) NewUserAuthService() *UserAuth {
 	}
 }
 
-func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (db.UserModel, error) {
+func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (constants.ServiceStructReturnType, error) {
 	requires := []string{"email", "password"}
 	var missing string
 
@@ -31,7 +32,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (db.UserMode
 		}
 	}
 	if len(missing) > 0 {
-		return db.UserModel{}, &utils.RequestError{
+		return nil, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
 		}
@@ -44,17 +45,37 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (db.UserMode
 	userAdapter := auth.dbPort.NewUserAdapter()
 	user, err := userAdapter.Get("email", email)
 	if err != nil {
-		return db.UserModel{}, &utils.RequestError{
+		return nil, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("User not found"),
 		}
 	}
 
 	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
-		return db.UserModel{}, &utils.RequestError{
+		return nil, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("invalid password"),
 		}
 	}
-	return user, nil
+
+	// Get user's group
+	userGroup, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
+	if err != nil {
+		return nil, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+	group, err := auth.dbPort.NewGroupAdapter().Get("id", userGroup.GroupId)
+	if err != nil {
+		return nil, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+
+	// Serialization and return
+	serializedUser := constants.ServiceStructReturnType(utils.StructToMap(user))
+	serializedUser["group_name"] = group.Name
+	return serializedUser, nil
 }

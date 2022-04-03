@@ -55,7 +55,9 @@ func (r *Router) userRoutes(h *Handler) {
 
 
 	// Middleware registration
-	subrouter.Use()
+	subrouter.Use(
+		middleware.UserGuard,
+	)
 }
 
 // Register staff protected routes
@@ -66,7 +68,9 @@ func (r *Router) staffRoutes(h *Handler) {
 
 
 	// Middleware registration
-	subrouter.Use()
+	subrouter.Use(
+		middleware.StaffGuard,
+	)
 }
 
 // Register admin protected routes
@@ -79,5 +83,7 @@ func (r *Router) adminRoutes(h *Handler) {
 
 
 	// Middleware registration
-	subrouter.Use()
+	subrouter.Use(
+		middleware.AdminGuard,
+	)
 }

@@ -12,14 +12,15 @@ import (
 
 type Claims struct {
 	UserId  			interface{}	`json:"user_id"`
+	UserGroupName 		interface{}	`json:"group_name"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(userId interface{}) (string, error) {
+func GenerateToken(userId, userGroupName interface{}) (string, error) {
 	claims := Claims{
 		UserId: 		userId,
+		UserGroupName: 	userGroupName,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 	15000,
 			Issuer:   	"Infiniti",
 		},
 	}
@@ -54,7 +55,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	token, err := GenerateToken(user["id"])
+	token, err := GenerateToken(user["id"], user["group_name"])
 	if err != nil {
 		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,7 +95,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	token, err := GenerateToken(user.Id)
+	token, err := GenerateToken(user["id"], user["group_name"])
 	if err != nil {
 		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
 		w.WriteHeader(http.StatusInternalServerError)

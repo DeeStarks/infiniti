@@ -2,6 +2,8 @@
 
 Infiniti is a simple bank application system, designed on the basis of the Hexagonal Architecture.
 
+API documentation can be found [here](https://documenter.getpostman.com/view/14444131/UVyswvHJ).
+
 ### Setup
 
 NB: Make sure to have docker installed and running. For docker installation, see [here](https://docs.docker.com/get-docker/).

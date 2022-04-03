@@ -90,6 +90,30 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 		}
 	}
 
+	// Create user's group
+	// Get the group id
+	group, err := user.dbPort.NewGroupAdapter().Get("name", "user")
+	if err != nil {
+		return nil, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+
+	groupData := map[string]interface{}{
+		"user_id": returnedUser.Id,
+		"group_id": group.Id,
+	}
+
+	// Create the user's group
+	_, err = user.dbPort.NewUserGroupAdapter().Create(groupData)
+	if err != nil {
+		return nil, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+
 	// Add the user's profile to the returned user
 	// Serialization and return
 	serializedUser := constants.ServiceStructReturnType(utils.StructToMap(returnedUser))
@@ -97,6 +121,7 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 
 	// Add the account to the user
 	serializedUser["account"] = serializedAcct
+	serializedUser["group_name"] = "user"
 	
 	// Return the user
 	return serializedUser, nil
