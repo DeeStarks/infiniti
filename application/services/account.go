@@ -1,18 +1,27 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/deestarks/infiniti/adapters/framework/db"
 	"github.com/deestarks/infiniti/application/core"
-	"github.com/deestarks/infiniti/application/services/constants"
 	"github.com/deestarks/infiniti/utils"
 )
 
 type Account struct {
 	dbPort 		db.DBPort
 	corePort 	core.CoreAppPort
+}
+
+type AccountLayout struct {
+	Id 				int 		`json:"id"`
+	UserId 			int 		`json:"user_id"`
+	AccountTypeId 	int 		`json:"account_type_id"`
+	AccountNumber 	string 		`json:"account_number"`
+	Balance 		float64 	`json:"balance"`
+	CurrencyId 		int 		`json:"currency_id"`
 }
 
 func (service *Service) NewAccountService() *Account {
@@ -27,47 +36,36 @@ func (service *Service) NewAccountService() *Account {
 // Key -> Column to get data from
 // Value -> Value to match
 // Includes -> Account related columns to include in the result
-func (account *Account) GetAccount(key string, value interface{}, includes []string) (constants.ServiceStructReturnType, error) {
+func (account *Account) GetAccount(key string, value interface{}, includes []string) (AccountLayout, error) {
 	accountAdapter := account.dbPort.NewAccountAdapter()
 	acct, err := accountAdapter.Get(key, value)
 	if err != nil {
-		return nil, &utils.RequestError{
+		return AccountLayout{}, &utils.RequestError{
 			Code:	http.StatusNotFound,
 			Err: 	fmt.Errorf("Account not found"),
 		}
 	}
 
-	serializedAcct := constants.ServiceStructReturnType(utils.StructToMap(acct))
-	return serializedAcct, nil
+	// Serialization and return
+	var acctLt AccountLayout
+	jsonAcct, _ := json.Marshal(acct)
+	json.Unmarshal(jsonAcct, &acctLt)
+	return acctLt, nil
 }
 
-func (account *Account) ListAccounts() (constants.ServiceStructSliceReturnType, error) {
+func (account *Account) ListAccounts() ([]AccountLayout, error) {
 	accountAdapter := account.dbPort.NewAccountAdapter()
 	accts, err := accountAdapter.List()
 	if err != nil {
-		return nil, &utils.RequestError{
+		return []AccountLayout{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf("error listing accounts"),
 		}
 	}
 
-	serializedAccts := constants.ServiceStructSliceReturnType(utils.StructSliceToMap(accts))
-	return serializedAccts, nil
-}
-
-
-
-// ACCOUNT TYPES
-func (account *Account) GetAccountType(key string, value interface{}) (constants.ServiceStructReturnType, error) {
-	accountTypeAdapter := account.dbPort.NewAccountTypeAdapter()
-	acctType, err := accountTypeAdapter.Get(key, value)
-	if err != nil {
-		return nil, &utils.RequestError{
-			Code:	http.StatusNotFound,
-			Err: 	fmt.Errorf("Account type not found"),
-		}
-	}
-
-	serializedAcctType := constants.ServiceStructReturnType(utils.StructToMap(acctType))
-	return serializedAcctType, nil
+	// Serialization and return
+	var acctLt []AccountLayout
+	jsonAccts, _ := json.Marshal(accts)
+	json.Unmarshal(jsonAccts, &acctLt)
+	return acctLt, nil
 }

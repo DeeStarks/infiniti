@@ -1,18 +1,29 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/deestarks/infiniti/adapters/framework/db"
 	"github.com/deestarks/infiniti/application/core"
-	"github.com/deestarks/infiniti/application/services/constants"
 	"github.com/deestarks/infiniti/utils"
 )
 
 type User struct {
 	dbPort 		db.DBPort
 	corePort 	core.CoreAppPort
+}
+
+type UserLayout struct {
+	Id 			int 				`json:"id"`
+	FirstName 	string 				`json:"first_name"`
+	LastName 	string 				`json:"last_name"`
+	Email 		string 				`json:"email"`
+	Group 		GroupLayout 		`json:"group"`
+	Account 	AccountLayout		`json:"account"`
+	CreatedAt 	string 				`json:"created_at"`
 }
 
 func (service *Service) NewUserService() *User {
@@ -22,8 +33,8 @@ func (service *Service) NewUserService() *User {
 	}
 }
 
-func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStructReturnType, error) {
-	userAdapter := user.dbPort.NewUserAdapter()
+func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
 	// First check that all required fields are present
 	required := []string{"email", "password", "first_name", "last_name", "account_type_id", "currency_id"}
 	var missing string
@@ -34,16 +45,16 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 		}
 	}
 	if len(missing) > 0 {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: %s", missing),
 		}
 	}
 
 	// Hash the password
-	encyptPass, err := user.corePort.HashPassword(data["password"].(string))
+	encyptPass, err := u.corePort.HashPassword(data["password"].(string))
 	if err != nil {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -60,7 +71,7 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 	// Create the user
 	returnedUser, err := userAdapter.Create(userData)
 	if err != nil {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	err,
 		}
@@ -69,22 +80,18 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 	// Create the user's profile - account
 	// First generate user's account number
 	// This is done by replacing the last characters of a main number with the user's id
-	mainNo := []byte("1220000000")
-	userId := []byte(fmt.Sprintf("%d", returnedUser.Id))
-	accountNo := fmt.Sprintf("%s%s", mainNo[:len(mainNo)-len(userId)], userId)
+	mainNo := 1220000000
+	accountNo := strconv.Itoa(mainNo+returnedUser.Id) // Type of "account_number" in the database is  a varchar
 
-	// Prepare user's profile data
-	accountData := map[string]interface{}{
+	// Creating the user's profile
+	returnedAcct, err := u.dbPort.NewAccountAdapter().Create(map[string]interface{}{
 		"user_id": returnedUser.Id,
 		"account_type_id": data["account_type_id"],
 		"currency_id": data["currency_id"],
 		"account_number": accountNo,
-	}
-
-	// Creating the user's profile
-	returnedAcct, err := user.dbPort.NewAccountAdapter().Create(accountData)
+	})
 	if err != nil {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -92,37 +99,44 @@ func (user *User) CreateUser(data map[string]interface{}) (constants.ServiceStru
 
 	// Create user's group
 	// Get the group id
-	group, err := user.dbPort.NewGroupAdapter().Get("name", "user")
+	group, err := u.dbPort.NewGroupAdapter().Get("name", "user")
 	if err != nil {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
-	}
-
-	groupData := map[string]interface{}{
-		"user_id": returnedUser.Id,
-		"group_id": group.Id,
 	}
 
 	// Create the user's group
-	_, err = user.dbPort.NewUserGroupAdapter().Create(groupData)
+	_, err = u.dbPort.NewUserGroupAdapter().Create(map[string]interface{}{
+		"user_id": returnedUser.Id,
+		"group_id": group.Id,
+	})
 	if err != nil {
-		return nil, &utils.RequestError{
+		return UserLayout{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
 	}
 
-	// Add the user's profile to the returned user
-	// Serialization and return
-	serializedUser := constants.ServiceStructReturnType(utils.StructToMap(returnedUser))
-	serializedAcct := constants.ServiceStructReturnType(utils.StructToMap(returnedAcct))
+	// Combine and return
+	var (
+		userLt 		UserLayout
+		groupLt 	GroupLayout
+		acctLt 		AccountLayout
+	)
+	// User
+	userJson, _ := json.Marshal(returnedUser)
+	json.Unmarshal(userJson, &userLt)
+	// Group
+	groupJson, _ := json.Marshal(group)
+	json.Unmarshal(groupJson, &groupLt)
+	// Account
+	acctJson, _ := json.Marshal(returnedAcct)
+	json.Unmarshal(acctJson, &acctLt)
 
-	// Add the account to the user
-	serializedUser["account"] = serializedAcct
-	serializedUser["group_name"] = "user"
-	
-	// Return the user
-	return serializedUser, nil
+	// Combine and return
+	userLt.Group = groupLt
+	userLt.Account = acctLt
+	return userLt, nil
 }

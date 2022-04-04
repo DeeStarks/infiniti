@@ -1,7 +1,3 @@
 package constants
 
-type (
-	// Return types
-	ServiceStructReturnType 		map[string]interface{}
-	ServiceStructSliceReturnType 	[]map[string]interface{}
-)
+const DateTimeFormat = "2021-04-01 00:00:00"

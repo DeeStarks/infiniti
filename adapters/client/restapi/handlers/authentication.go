@@ -55,7 +55,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	token, err := GenerateToken(user["id"], user["group_name"])
+	token, err := GenerateToken(user.Id, user.Group.Name)
 	if err != nil {
 		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -95,7 +95,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	token, err := GenerateToken(user["id"], user["group_name"])
+	token, err := GenerateToken(user.Id, user.Group.Name)
 	if err != nil {
 		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
 		w.WriteHeader(http.StatusInternalServerError)
