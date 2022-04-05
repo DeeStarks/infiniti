@@ -13,16 +13,14 @@ func UserGuard(handler http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rToken := r.Header.Get("Authorization")
 		if rToken == "" {
-			res, _ := templates.Template(http.StatusUnauthorized, "Missing token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Missing token", nil)
 			w.Write([]byte(res))
 			return
 		}
 
 		bearerToken := strings.Split(rToken, " ")
 		if len(bearerToken) != 2 {
-			res, _ := templates.Template(http.StatusUnauthorized, "Invalid token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Invalid token", nil)
 			w.Write([]byte(res))
 			return
 		}
@@ -37,14 +35,12 @@ func UserGuard(handler http.Handler) http.Handler {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			groupName := claims["group_name"]
 			if groupName != "admin" && groupName != "user" && groupName != "staff" {
-				res, _ := templates.Template(http.StatusUnauthorized, "You are not authorized to access this resource", nil)
-				w.WriteHeader(http.StatusUnauthorized)
+				res, _ := templates.Template(w, http.StatusUnauthorized, "You are not authorized to access this resource", nil)
 				w.Write([]byte(res))
 				return
 			}
 		} else {
-			res, _ := templates.Template(http.StatusUnauthorized, err.Error(), nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
 			return
 		}
@@ -57,16 +53,14 @@ func StaffGuard(handler http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rToken := r.Header.Get("Authorization")
 		if rToken == "" {
-			res, _ := templates.Template(http.StatusUnauthorized, "Missing token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Missing token", nil)
 			w.Write([]byte(res))
 			return
 		}
 
 		bearerToken := strings.Split(rToken, " ")
 		if len(bearerToken) != 2 {
-			res, _ := templates.Template(http.StatusUnauthorized, "Invalid token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Invalid token", nil)
 			w.Write([]byte(res))
 			return
 		}
@@ -81,14 +75,12 @@ func StaffGuard(handler http.Handler) http.Handler {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			groupName := claims["group_name"]
 			if groupName != "staff" {
-				res, _ := templates.Template(http.StatusUnauthorized, "You are not authorized to access this resource", nil)
-				w.WriteHeader(http.StatusUnauthorized)
+				res, _ := templates.Template(w, http.StatusUnauthorized, "You are not authorized to access this resource", nil)
 				w.Write([]byte(res))
 				return
 			}
 		} else {
-			res, _ := templates.Template(http.StatusUnauthorized, err.Error(), nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
 			return
 		}
@@ -101,16 +93,14 @@ func AdminGuard(handler http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rToken := r.Header.Get("Authorization")
 		if rToken == "" {
-			res, _ := templates.Template(http.StatusUnauthorized, "Missing token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Missing token", nil)
 			w.Write([]byte(res))
 			return
 		}
 
 		bearerToken := strings.Split(rToken, " ")
 		if len(bearerToken) != 2 {
-			res, _ := templates.Template(http.StatusUnauthorized, "Invalid token", nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, "Invalid token", nil)
 			w.Write([]byte(res))
 			return
 		}
@@ -125,14 +115,12 @@ func AdminGuard(handler http.Handler) http.Handler {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			groupName := claims["group_name"]
 			if groupName != "admin" {
-				res, _ := templates.Template(http.StatusUnauthorized, "You are not authorized to access this resource", nil)
-				w.WriteHeader(http.StatusUnauthorized)
+				res, _ := templates.Template(w, http.StatusUnauthorized, "You are not authorized to access this resource", nil)
 				w.Write([]byte(res))
 				return
 			}
 		} else {
-			res, _ := templates.Template(http.StatusUnauthorized, err.Error(), nil)
-			w.WriteHeader(http.StatusUnauthorized)
+			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
 			return
 		}

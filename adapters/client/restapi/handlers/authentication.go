@@ -31,8 +31,7 @@ func GenerateToken(userId, userGroupName interface{}) (string, error) {
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" { // Only accept POST requests
-		res, _ := templates.Template(http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
 		w.Write([]byte(res))
 		return
 	}
@@ -40,16 +39,14 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
-		res, _ := templates.Template(http.StatusBadRequest, "Invalid JSON data", nil)
-		w.WriteHeader(http.StatusBadRequest)
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
 		w.Write([]byte(res))
 		return
 	}
 
 	user, err := h.appPort.NewUserService().CreateUser(data)
 	if err, ok := err.(*utils.RequestError); ok {
-		res, _ := templates.Template(err.StatusCode(), err.Error(), nil)
-		w.WriteHeader(err.StatusCode())
+		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
 		w.Write([]byte(res))
 		return
 	}
@@ -57,21 +54,20 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	// Create a JWT token
 	token, err := GenerateToken(user.Id, user.Group.Name)
 	if err != nil {
-		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
-		w.WriteHeader(http.StatusInternalServerError)
+		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 		w.Write([]byte(res))
 		return
 	}
 	newData := make(map[string]interface{})
 	newData["token"] = token
 	newData["user"] = user
-	res, _ := templates.Template(http.StatusOK, "User successfully created", newData)
+	res, _ := templates.Template(w, http.StatusOK, "User successfully created", newData)
 	w.Write([]byte(res))
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" { // Only accept POST requests
-		res, _ := templates.Template(http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte(res))
 		return
@@ -80,16 +76,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
-		res, _ := templates.Template(http.StatusBadRequest, "Invalid JSON data", nil)
-		w.WriteHeader(http.StatusBadRequest)
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
 		w.Write([]byte(res))
 		return
 	}
 
 	user, err := h.appPort.NewUserAuthService().AuthenticateUser(data)
 	if err, ok := err.(*utils.RequestError); ok {
-		res, _ := templates.Template(err.StatusCode(), err.Error(), nil)
-		w.WriteHeader(err.StatusCode())
+		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
 		w.Write([]byte(res))
 		return
 	}
@@ -97,14 +91,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	// Create a JWT token
 	token, err := GenerateToken(user.Id, user.Group.Name)
 	if err != nil {
-		res, _ := templates.Template(http.StatusInternalServerError, "Error generating token", nil)
-		w.WriteHeader(http.StatusInternalServerError)
+		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 		w.Write([]byte(res))
 		return
 	}
 	newData := make(map[string]interface{})
 	newData["token"] = token
 	newData["user"] = user
-	res, _ := templates.Template(http.StatusOK, "User successfully logged in", newData)
+	res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
 	w.Write([]byte(res))
 }
