@@ -10,7 +10,7 @@ type Group struct {
 	corePort 	core.CoreAppPort
 }
 
-type GroupLayout struct {
+type GroupResource struct {
 	Id 		int 	`json:"id"`
 	Name 	string 	`json:"name"`
 }

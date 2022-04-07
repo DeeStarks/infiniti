@@ -22,7 +22,7 @@ func (service *Service) NewUserAuthService() *UserAuth {
 	}
 }
 
-func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout, error) {
+func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResource, error) {
 	requires := []string{"email", "password"}
 	var missing string
 
@@ -32,7 +32,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout,
 		}
 	}
 	if len(missing) > 0 {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
 		}
@@ -45,14 +45,14 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout,
 	userAdapter := auth.dbPort.NewUserAdapter()
 	user, err := userAdapter.Get("email", email)
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("User not found"),
 		}
 	}
 
 	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("invalid password"),
 		}
@@ -62,7 +62,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout,
 	accountAdapter := auth.dbPort.NewAccountAdapter()
 	account, err := accountAdapter.Get("user_id", user.Id)
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -71,14 +71,14 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout,
 	// Get user's group
 	userGroup, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
 	}
 	group, err := auth.dbPort.NewGroupAdapter().Get("id", userGroup.GroupId)
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -86,22 +86,22 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserLayout,
 
 	// Serialization and return
 	var (
-		userLt 		UserLayout
-		acctLt 		AccountLayout
-		groupLt 	GroupLayout
+		userRes 	UserResource
+		acctRes 	AccountResource
+		groupRes 	GroupResource
 	)
 	// User
 	userJson, _ := json.Marshal(user)
-	json.Unmarshal(userJson, &userLt)
+	json.Unmarshal(userJson, &userRes)
 	// Account
 	acctJson, _ := json.Marshal(account)
-	json.Unmarshal(acctJson, &acctLt)
+	json.Unmarshal(acctJson, &acctRes)
 	// Group
 	groupJson, _ := json.Marshal(group)
-	json.Unmarshal(groupJson, &groupLt)
+	json.Unmarshal(groupJson, &groupRes)
 
 	// Combine and return
-	userLt.Account = acctLt
-	userLt.Group = groupLt
-	return userLt, nil
+	userRes.Account = acctRes
+	userRes.Group = groupRes
+	return userRes, nil
 }

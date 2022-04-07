@@ -15,7 +15,7 @@ type Account struct {
 	corePort 	core.CoreAppPort
 }
 
-type AccountLayout struct {
+type AccountResource struct {
 	Id 				int 		`json:"id"`
 	UserId 			int 		`json:"user_id"`
 	AccountTypeId 	int 		`json:"account_type_id"`
@@ -36,36 +36,36 @@ func (service *Service) NewAccountService() *Account {
 // Key -> Column to get data from
 // Value -> Value to match
 // Includes -> Account related columns to include in the result
-func (account *Account) GetAccount(key string, value interface{}, includes []string) (AccountLayout, error) {
+func (account *Account) GetAccount(key string, value interface{}, includes []string) (AccountResource, error) {
 	accountAdapter := account.dbPort.NewAccountAdapter()
 	acct, err := accountAdapter.Get(key, value)
 	if err != nil {
-		return AccountLayout{}, &utils.RequestError{
+		return AccountResource{}, &utils.RequestError{
 			Code:	http.StatusNotFound,
 			Err: 	fmt.Errorf("Account not found"),
 		}
 	}
 
 	// Serialization and return
-	var acctLt AccountLayout
+	var res AccountResource
 	jsonAcct, _ := json.Marshal(acct)
-	json.Unmarshal(jsonAcct, &acctLt)
-	return acctLt, nil
+	json.Unmarshal(jsonAcct, &res)
+	return res, nil
 }
 
-func (account *Account) ListAccounts() ([]AccountLayout, error) {
+func (account *Account) ListAccounts() ([]AccountResource, error) {
 	accountAdapter := account.dbPort.NewAccountAdapter()
 	accts, err := accountAdapter.List()
 	if err != nil {
-		return []AccountLayout{}, &utils.RequestError{
+		return []AccountResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf("error listing accounts"),
 		}
 	}
 
 	// Serialization and return
-	var acctLt []AccountLayout
+	var res []AccountResource
 	jsonAccts, _ := json.Marshal(accts)
-	json.Unmarshal(jsonAccts, &acctLt)
-	return acctLt, nil
+	json.Unmarshal(jsonAccts, &res)
+	return res, nil
 }

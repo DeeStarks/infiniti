@@ -16,13 +16,13 @@ type User struct {
 	corePort 	core.CoreAppPort
 }
 
-type UserLayout struct {
+type UserResource struct {
 	Id 			int 				`json:"id"`
 	FirstName 	string 				`json:"first_name"`
 	LastName 	string 				`json:"last_name"`
 	Email 		string 				`json:"email"`
-	Group 		GroupLayout 		`json:"group"`
-	Account 	AccountLayout		`json:"account"`
+	Group 		GroupResource 		`json:"group"`
+	Account 	AccountResource		`json:"account"`
 	CreatedAt 	string 				`json:"created_at"`
 }
 
@@ -33,7 +33,7 @@ func (service *Service) NewUserService() *User {
 	}
 }
 
-func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
+func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	// First check that all required fields are present
 	required := []string{"email", "password", "first_name", "last_name", "account_type_id", "currency_id"}
@@ -45,7 +45,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 		}
 	}
 	if len(missing) > 0 {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: %s", missing),
 		}
@@ -54,7 +54,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 	// Hash the password
 	encyptPass, err := u.corePort.HashPassword(data["password"].(string))
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -71,7 +71,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 	// Create the user
 	returnedUser, err := userAdapter.Create(userData)
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	err,
 		}
@@ -91,7 +91,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 		"account_number": accountNo,
 	})
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -101,7 +101,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 	// Get the group id
 	group, err := u.dbPort.NewGroupAdapter().Get("name", "user")
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -113,7 +113,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 		"group_id": group.Id,
 	})
 	if err != nil {
-		return UserLayout{}, &utils.RequestError{
+		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -121,22 +121,22 @@ func (u *User) CreateUser(data map[string]interface{}) (UserLayout, error) {
 
 	// Combine and return
 	var (
-		userLt 		UserLayout
-		groupLt 	GroupLayout
-		acctLt 		AccountLayout
+		userRes 	UserResource
+		groupRes 	GroupResource
+		acctRes 	AccountResource
 	)
 	// User
 	userJson, _ := json.Marshal(returnedUser)
-	json.Unmarshal(userJson, &userLt)
+	json.Unmarshal(userJson, &userRes)
 	// Group
 	groupJson, _ := json.Marshal(group)
-	json.Unmarshal(groupJson, &groupLt)
+	json.Unmarshal(groupJson, &groupRes)
 	// Account
 	acctJson, _ := json.Marshal(returnedAcct)
-	json.Unmarshal(acctJson, &acctLt)
+	json.Unmarshal(acctJson, &acctRes)
 
 	// Combine and return
-	userLt.Group = groupLt
-	userLt.Account = acctLt
-	return userLt, nil
+	userRes.Group = groupRes
+	userRes.Account = acctRes
+	return userRes, nil
 }
