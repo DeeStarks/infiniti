@@ -18,3 +18,36 @@ func LogMessage(format string, args ...interface{}) {
 	log.SetFlags(0)
 	log.Println(logInfo+msg)
 }
+
+// 
+type message struct {}
+
+func Printer() *message {
+	return &message{}
+}
+
+func (m *message) Message(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	fmt.Println(msg)
+}
+
+func (m *message) Error(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	colors := constants.NewLoggerColors()
+	msg = fmt.Sprintf("%s%s%s", colors.Red, msg, colors.Reset)
+	fmt.Println(msg)
+}
+
+func (m *message) Info(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	colors := constants.NewLoggerColors()
+	msg = fmt.Sprintf("%s%s%s", colors.Green, msg, colors.Reset)
+	fmt.Println(msg)
+}
+
+func (m *message) Warning(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	colors := constants.NewLoggerColors()
+	msg = fmt.Sprintf("%s%s%s", colors.Yellow, msg, colors.Reset)
+	fmt.Println(msg)
+}
