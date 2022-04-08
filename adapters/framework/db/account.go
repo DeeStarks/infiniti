@@ -124,9 +124,9 @@ func (mAdapt *AccountAdapter) Get(colName string, value interface{}) (*AccountMo
 		&account.Id, &account.UserId, &account.AccountTypeId,
 		&account.AccountNumber, &account.Balance, &account.CurrencyId,
 	)
-    if err, ok := err.(*pq.Error); ok {
-		return nil, fmt.Errorf("%s", err.Detail)
-    }
+	if err != nil {
+		return nil, err
+	}
 	return &account, nil
 }
 
