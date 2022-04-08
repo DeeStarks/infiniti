@@ -14,6 +14,7 @@ NB: Make sure to have docker installed and running. For docker installation, see
 - Copy the content of the `.env.example` file to the `.env` file. Change the values of the variables according to your choice or leave them as they are. ***(Important: the `RESTAPI_SECRET` variable is important. You can generate one using `make keygen` command)***
 - `make migrate-up` - Migrates the database schema.
 - `make start` - To start the application.
+- `make cli-createadmin` - To create an admin user.
 
 App will be available at `http://localhost:8000`. `curl http://localhost:8000/api/v1/` will return a welcome message.
 
@@ -32,6 +33,7 @@ App will be available at `http://localhost:8000`. `curl http://localhost:8000/ap
 11. `make test` - Recursively run all tests OR pass a directory as an argument to run the tests in a directory (e.g. `make test TESTDIR=github.com/deestarks/infiniti/adapters/framework/db` to run the tests in the `db` directory).
 12. `make db-shell` - Opens an interactive shell for the database.
 13. `make keygen` - Generates a random 32-character string.
+14. `make cli-createadmin` - To create an admin user from the command line.
 
 
 ### Project structure
@@ -39,9 +41,12 @@ App will be available at `http://localhost:8000`. `curl http://localhost:8000/ap
 infiniti
 ├── adapters
 │   ├── client
-│   │    └── restapi                # Contains all REST API components (e.g. handlers, middlewares, etc.)
-│   │       ├── handlers            # Contains all handlers for the REST API including the routes.
-│   │       └── middleware          # Contains all middlewares for the REST API.
+│   │    ├── restapi                # Contains all REST API app components (e.g. handlers, middlewares, etc.)
+│   │    │   ├── constants          # Constants used accross the RESTAPI client.
+│   │    │   ├── handlers           # Contains all handlers for the REST API including the routes.
+│   │    │   └── middleware         # Contains all middlewares for the REST API.
+│   │    └── cli                    # Contains all CLI app components (e.g. handlers, etc.)
+│   │       └── handlers            # Contains all handlers for the CLI app.
 │   └── framework
 │       └── db                      # Contains all database components (e.g. models, migrations, etc.)
 │           ├── migrations          # Contains all migration files.
