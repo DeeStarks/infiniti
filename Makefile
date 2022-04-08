@@ -48,3 +48,14 @@ migrate-up:
 
 migrate-down:
 	@docker-compose exec infiniti-web migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose down
+
+
+# CLI app commands
+cli-createadmin:
+	@docker-compose exec infiniti-web ./bin/infiniti -c cli createadmin
+
+cli-help:
+	@docker-compose exec infiniti-web ./bin/infiniti -c cli help
+
+cli-version:
+	@docker-compose exec infiniti-web ./bin/infiniti -c cli version
