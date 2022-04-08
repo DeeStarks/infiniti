@@ -8,7 +8,7 @@ type Handler struct {
 	appPort		services.AppServicesPort
 }
 
-func NewHandler(appPort services.AppServicesPort) *Handler {
+func NewRESTHandler(appPort services.AppServicesPort) *Handler {
 	return &Handler{
 		appPort: appPort,
 	}
