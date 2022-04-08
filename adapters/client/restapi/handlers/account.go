@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/deestarks/infiniti/adapters/client/restapi/constants"
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/utils"
 	"github.com/gorilla/mux"
@@ -25,9 +26,31 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the URL variables
-	idVar, ok := vars["id"] // Get the id variable
-	if !ok {
-		res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
+	var idVar string
+
+	// Get route group (user, staff, admin)
+	routeGroup := utils.GetRouteGroup(r)
+
+	switch routeGroup {
+	case "user", "staff":
+		// Get the user ID from the request context
+		id := r.Context().Value(constants.CTXKey("user_id"))
+		if id == nil {
+			res, _ := templates.Template(w, http.StatusUnauthorized, "User not logged in", nil)
+			w.Write([]byte(res))
+			return
+		}
+		idVar = fmt.Sprintf("%v", id)
+	case "admin":
+		id, ok := vars["id"] // Get the id variable
+		if !ok {
+			res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
+			w.Write([]byte(res))
+			return
+		}
+		idVar = id
+	default:
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid url", nil)
 		w.Write([]byte(res))
 		return
 	}
@@ -43,6 +66,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		acct, err := h.appPort.NewAccountService().GetAccount("id", id, []string{})
+		fmt.Println(err)
 		if err, ok := err.(*utils.RequestError); ok {
 			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
 			w.Write([]byte(res))

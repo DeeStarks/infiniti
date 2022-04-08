@@ -52,7 +52,7 @@ func (r *Router) userRoutes(h *Handler) {
 	subrouter := r.router.PathPrefix("/user").Subrouter()
 
 	// Routes here
-	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("user:single-account")
+	subrouter.HandleFunc("/account", h.SingleAccount).Name("user:single-account")
 
 
 	// Middleware registration

@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/mail"
+	"strings"
 )
 
 // The struct - "obj", fields must have json tags
@@ -23,4 +25,8 @@ func StructSliceToMap(obj interface{}) []map[string]interface{} {
 func IsValidEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
+}
+
+func GetRouteGroup(r *http.Request) string {
+	return strings.Split(r.URL.Path, "/")[3]
 }

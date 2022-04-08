@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
+	"github.com/deestarks/infiniti/adapters/client/restapi/constants"
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/config"
 	"github.com/golang-jwt/jwt"
@@ -39,6 +41,14 @@ func UserGuard(handler http.Handler) http.Handler {
 				w.Write([]byte(res))
 				return
 			}
+
+			// Add user id and group name to request
+
+			// There's a warning - "should not use built-in type string as key for value; define your own type to avoid collisions"
+			// hence the use of "constants.CTXKey" (which is a custom type)
+			ctx := context.WithValue(r.Context(), constants.CTXKey("user_id"), claims["user_id"])
+			ctx = context.WithValue(ctx, constants.CTXKey("group_name"), claims["group_name"])
+			r = r.WithContext(ctx)
 		} else {
 			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
@@ -79,6 +89,14 @@ func StaffGuard(handler http.Handler) http.Handler {
 				w.Write([]byte(res))
 				return
 			}
+
+			// Add staff id and group name to request
+
+			// There's a warning - "should not use built-in type string as key for value; define your own type to avoid collisions"
+			// hence the use of constants.CTXKey (which is a custom type)
+			ctx := context.WithValue(r.Context(), constants.CTXKey("user_id"), claims["user_id"])
+			ctx = context.WithValue(ctx, constants.CTXKey("group_name"), claims["group_name"])
+			r = r.WithContext(ctx)
 		} else {
 			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
@@ -119,6 +137,14 @@ func AdminGuard(handler http.Handler) http.Handler {
 				w.Write([]byte(res))
 				return
 			}
+
+			// Add admin id and group name to request
+
+			// There's a warning - "should not use built-in type string as key for value; define your own type to avoid collisions"
+			// hence the use of constants.CTXKey (which is a custom type)
+			ctx := context.WithValue(r.Context(), constants.CTXKey("user_id"), claims["user_id"])
+			ctx = context.WithValue(ctx, constants.CTXKey("group_name"), claims["group_name"])
+			r = r.WithContext(ctx)
 		} else {
 			res, _ := templates.Template(w, http.StatusUnauthorized, err.Error(), nil)
 			w.Write([]byte(res))
