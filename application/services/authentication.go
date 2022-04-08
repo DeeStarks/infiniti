@@ -105,3 +105,80 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 	userRes.Group = groupRes
 	return userRes, nil
 }
+
+func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResource, error) {
+	requires := []string{"email", "password"}
+	var missing string
+
+	for _, field := range requires {
+		if _, ok := data[field]; !ok {
+			missing = fmt.Sprintf("%s, %s", missing, field)
+		}
+	}
+	if len(missing) > 0 {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
+		}
+	}
+
+	// Get the admin
+	email := data["email"].(string)
+	password := data["password"].(string)
+
+	userAdapter := auth.dbPort.NewUserAdapter()
+	user, err := userAdapter.Get("email", email)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("Admin not found"),
+		}
+	}
+
+	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("invalid password"),
+		}
+	}
+
+	// Get group
+	groupObj, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+	group, err := auth.dbPort.NewGroupAdapter().Get("id", groupObj.GroupId)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+
+	// Confirm it's an admin
+	if group.Name != "admin" {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("User is not an admin"),
+		}
+	}
+
+	// Serialization and return
+	var (
+		adminRes 	AdminResource
+		groupRes 	GroupResource
+	)
+	// User
+	userJson, _ := json.Marshal(user)
+	json.Unmarshal(userJson, &adminRes)
+	// Group
+	groupJson, _ := json.Marshal(group)
+	json.Unmarshal(groupJson, &groupRes)
+
+	// Combine and return
+	adminRes.Group = groupRes
+	return adminRes, nil
+}

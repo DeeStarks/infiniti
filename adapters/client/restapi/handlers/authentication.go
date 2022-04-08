@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/config"
@@ -81,23 +82,75 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.appPort.NewUserAuthService().AuthenticateUser(data)
-	if err, ok := err.(*utils.RequestError); ok {
-		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
-		w.Write([]byte(res))
-		return
-	}
+	// Check path to get the subroute (user, staff, admin)
+	routeGroup := strings.Split(r.URL.Path, "/")[3]
 
-	// Create a JWT token
-	token, err := GenerateToken(user.Id, user.Group.Name)
-	if err != nil {
-		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
+	switch routeGroup {
+	case "user":
+		user, err := h.appPort.NewUserAuthService().AuthenticateUser(data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+	
+		// Create a JWT token
+		token, err := GenerateToken(user.Id, "user")
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
+			w.Write([]byte(res))
+			return
+		}
+		newData := make(map[string]interface{})
+		newData["token"] = token
+		newData["user"] = user
+		res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
+		w.Write([]byte(res))
+		
+	// case "staff":
+	// 	staff, err := h.appPort.NewUserAuthService().AuthenticateStaff(data)
+	// 	if err, ok := err.(*utils.RequestError); ok {
+	// 		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+	// 		w.Write([]byte(res))
+	// 		return
+	// 	}
+	
+	// 	// Create a JWT token
+	// 	token, err := GenerateToken(staff.Id, "staff")
+	// 	if err != nil {
+	// 		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
+	// 		w.Write([]byte(res))
+	// 		return
+	// 	}
+	// 	newData := make(map[string]interface{})
+	// 	newData["token"] = token
+	// 	newData["staff"] = staff
+	// 	res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
+	// 	w.Write([]byte(res))
+
+	case "admin":
+		admin, err := h.appPort.NewUserAuthService().AuthenticateAdmin(data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		// Create a JWT token
+		token, err := GenerateToken(admin.Id, "admin")
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
+			w.Write([]byte(res))
+			return
+		}
+		newData := make(map[string]interface{})
+		newData["token"] = token
+		newData["admin"] = admin
+		res, _ := templates.Template(w, http.StatusOK, "Admin successfully logged in", newData)
+		w.Write([]byte(res))
+	default:
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid route", nil)
 		w.Write([]byte(res))
 		return
 	}
-	newData := make(map[string]interface{})
-	newData["token"] = token
-	newData["user"] = user
-	res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
-	w.Write([]byte(res))
 }
