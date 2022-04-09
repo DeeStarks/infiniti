@@ -31,7 +31,7 @@ func GenerateToken(userId, userGroupName interface{}) (string, error) {
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" { // Only accept POST requests
+	if r.Method != http.MethodPost { // Only accept POST requests
 		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
 		w.Write([]byte(res))
 		return
@@ -67,7 +67,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" { // Only accept POST requests
+	if r.Method != http.MethodPost { // Only accept POST requests
 		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte(res))
@@ -107,26 +107,26 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
 		w.Write([]byte(res))
 		
-	// case "staff":
-	// 	staff, err := h.appPort.NewUserAuthService().AuthenticateStaff(data)
-	// 	if err, ok := err.(*utils.RequestError); ok {
-	// 		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
-	// 		w.Write([]byte(res))
-	// 		return
-	// 	}
+	case "staff":
+		staff, err := h.appPort.NewUserAuthService().AuthenticateStaff(data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
 	
-	// 	// Create a JWT token
-	// 	token, err := GenerateToken(staff.Id, "staff")
-	// 	if err != nil {
-	// 		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
-	// 		w.Write([]byte(res))
-	// 		return
-	// 	}
-	// 	newData := make(map[string]interface{})
-	// 	newData["token"] = token
-	// 	newData["staff"] = staff
-	// 	res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
-	// 	w.Write([]byte(res))
+		// Create a JWT token
+		token, err := GenerateToken(staff.Id, "staff")
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
+			w.Write([]byte(res))
+			return
+		}
+		newData := make(map[string]interface{})
+		newData["token"] = token
+		newData["staff"] = staff
+		res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
+		w.Write([]byte(res))
 
 	case "admin":
 		admin, err := h.appPort.NewUserAuthService().AuthenticateAdmin(data)
