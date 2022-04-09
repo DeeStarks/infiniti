@@ -31,11 +31,9 @@ func (service *Service) NewAccountService() *Account {
 	}
 }
 
-// ACCOUNT
-
-// Key -> Column to get data from
-// Value -> Value to match
-// Includes -> Account related columns to include in the result
+// key -> Column to get data from
+// value -> Value to match
+// includes -> Account related columns to include in the result
 func (account *Account) GetAccount(key string, value interface{}, includes []string) (AccountResource, error) {
 	accountAdapter := account.dbPort.NewAccountAdapter()
 	acct, err := accountAdapter.Get(key, value)
@@ -43,6 +41,42 @@ func (account *Account) GetAccount(key string, value interface{}, includes []str
 		return AccountResource{}, &utils.RequestError{
 			Code:	http.StatusNotFound,
 			Err: 	fmt.Errorf("Account not found"),
+		}
+	}
+
+	// Serialization and return
+	var res AccountResource
+	jsonAcct, _ := json.Marshal(acct)
+	json.Unmarshal(jsonAcct, &res)
+	return res, nil
+}
+
+// Update an account
+// value -> value to match
+// key -> column to match
+// data -> update data
+func (account *Account) UpdateAccount(key string, value interface{}, data map[string]interface{}) (AccountResource, error) {
+	rsrts := []string{"id", "user_id", "account_number", "balance"} // Restricted columns to update
+	var foundRsrts string // Restrictions found
+	// Check if the data contains restricted columns
+	for _, field := range rsrts {
+		if _, ok := data[field]; ok {
+			foundRsrts = fmt.Sprintf("%s, %s", foundRsrts, field)
+		}
+	}
+	if len(foundRsrts) > 0 {
+		return AccountResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("cannot update restricted fields: '%s'", foundRsrts),
+		}
+	}
+
+	accountAdapter := account.dbPort.NewAccountAdapter()
+	acct, err := accountAdapter.Update(key, value, data)
+	if err != nil {
+		return AccountResource{}, &utils.RequestError{
+			Code:	http.StatusNotFound,
+			Err: 	fmt.Errorf(err.Error()),
 		}
 	}
 

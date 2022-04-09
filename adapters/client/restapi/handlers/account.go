@@ -63,10 +63,10 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	acctService := h.appPort.NewAccountService()
 	switch r.Method {
-	case "GET":
-		acct, err := h.appPort.NewAccountService().GetAccount("id", id, []string{})
-		fmt.Println(err)
+	case http.MethodGet:
+		acct, err := acctService.GetAccount("id", id, []string{})
 		if err, ok := err.(*utils.RequestError); ok {
 			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
 			w.Write([]byte(res))
@@ -75,7 +75,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	
 		res, _ := templates.Template(w, http.StatusOK, "Account successfully retrieved", acct)
 		w.Write([]byte(res))
-	case "PUT":
+	case http.MethodPut:
 		data := make(map[string]interface{})
 		err := json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
@@ -83,9 +83,14 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(res))
 			return
 		}
-		fmt.Println(data)
-		// TODO: Validate data
-		
+		acct, err := acctService.UpdateAccount("id", id, data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+		res, _ := templates.Template(w, http.StatusOK, "Account successfully updated", acct)
+		w.Write([]byte(res))
 	default:
 		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only GET and PUT requests", nil)
 		w.Write([]byte(res))
