@@ -44,9 +44,9 @@ func (mAdapt *UserAdapter) Get(col string, value interface{}) (UserModel, error)
 		&user.Id, &user.FirstName, &user.LastName,
 		&user.Email, &user.Password, &user.CreatedAt,
 	)
-    if err, ok := err.(*pq.Error); ok {
-		return UserModel{}, fmt.Errorf("%s", err.Detail)
-    }
+	if err != nil {
+		return UserModel{}, err
+	}
 	return user, nil
 }
 
