@@ -46,7 +46,7 @@ func main() {
 	}
 }
 
-// connectDB attempts to connect to the database for "maxAttempts" times
+// connectDB attempts to connect to the database for "attempts" times
 func connectDB(attempts int) (*db.DBAdapter) {
 	if attempts == 0 {
 		panic("Could not connect to the database")
