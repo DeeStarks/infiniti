@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/config"
@@ -12,17 +13,19 @@ import (
 )
 
 type Claims struct {
-	UserId  			interface{}	`json:"user_id"`
-	UserGroupName 		interface{}	`json:"group_name"`
+	UserId  			int		`json:"user_id"`
+	UserGroupName 		string	`json:"group_name"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(userId, userGroupName interface{}) (string, error) {
+func GenerateToken(userId int, userGroupName string) (string, error) {
 	claims := Claims{
 		UserId: 		userId,
 		UserGroupName: 	userGroupName,
 		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: 	time.Now().Add(time.Hour * 48).Unix(), // Token expires in 48 hours
 			Issuer:   	"Infiniti",
+			IssuedAt:  	time.Now().Unix(),
 		},
 	}
 
