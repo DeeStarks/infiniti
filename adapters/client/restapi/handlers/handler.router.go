@@ -80,6 +80,9 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter := r.router.PathPrefix("/admin").Subrouter()
 
 	// Routes here
+	subrouter.HandleFunc("/users", h.ListUsers).Name("admin:list-users")
+	subrouter.HandleFunc("/staff", h.ListStaff).Name("admin:list-staff")
+	subrouter.HandleFunc("/admins", h.ListAdmin).Name("admin:list-admins")
 	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("admin:list-accounts")
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("admin:single-account")
 
