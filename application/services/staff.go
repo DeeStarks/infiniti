@@ -112,3 +112,77 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 	userRes.Group = groupRes
 	return userRes, nil
 }
+
+func (u *Staff) GetStaff(key string, value interface{}) (StaffResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	staff, err := userAdapter.Get(key, value)
+	if err != nil {
+		return StaffResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("staff not found"),
+		}
+	}
+	var staffRes StaffResource
+	staffJson, _ := json.Marshal(staff)
+	json.Unmarshal(staffJson, &staffRes)
+	return staffRes, nil
+}
+
+func (u *Staff) ListStaff() ([]StaffResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	selector := userAdapter.NewUserCustomSelector("groups.name", "staff", "users.id", true).
+		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
+		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
+	data := selector.Query()
+
+	var res []StaffResource
+	for _, user := range data {
+		// Prepare user data
+		userData := map[string]interface{}{
+			"id": user["users__id"],
+			"email": user["users__email"],
+			"password": user["users__password"],
+			"first_name": user["users__first_name"],
+			"last_name": user["users__last_name"],
+			"created_at": user["users__created_at"],
+		}
+
+		// Prepare group data
+		groupData := map[string]interface{}{
+			"id": user["groups__id"],
+			"name": user["groups__name"],
+		}
+
+		// Combine and return
+		var staffRes StaffResource
+		userJson, _ := json.Marshal(userData)
+		json.Unmarshal(userJson, &staffRes)
+
+		var groupRes GroupResource
+		groupJson, _ := json.Marshal(groupData)
+		json.Unmarshal(groupJson, &groupRes)
+
+		staffRes.Group = groupRes
+		res = append(res, staffRes)
+	}
+	return res, nil
+}
+
+
+func (u *Staff) UpdateStaff(key string, value interface{}, data map[string]interface{}) (StaffResource, error) {
+	for _, v := range []string{"id", "created_at"} { // These fields cannot be updated
+		delete(data, v)
+	}
+	userAdapter := u.dbPort.NewUserAdapter()
+	staff, err := userAdapter.Update(key, value, data)
+	if err != nil {
+		return StaffResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("staff not found"),
+		}
+	}
+	var staffRes StaffResource
+	staffJson, _ := json.Marshal(staff)
+	json.Unmarshal(staffJson, &staffRes)
+	return staffRes, nil
+}

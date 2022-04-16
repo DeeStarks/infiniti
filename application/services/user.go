@@ -140,3 +140,92 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 	userRes.Account = acctRes
 	return userRes, nil
 }
+
+func (u *User) GetUser(key string, value interface{}) (UserResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	user, err := userAdapter.Get(key, value)
+	if err != nil {
+		return UserResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+	var userRes UserResource
+	userJson, _ := json.Marshal(user)
+	json.Unmarshal(userJson, &userRes)
+	return userRes, nil
+}
+
+func (u *User) ListUsers() ([]UserResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	selector := userAdapter.NewUserCustomSelector("groups.name", "user", "users.id", true).
+		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
+		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"}).
+		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
+	data := selector.Query()
+
+	var res []UserResource
+	for _, user := range data {
+		// Prepare user data
+		userData := map[string]interface{}{
+			"id": user["users__id"],
+			"email": user["users__email"],
+			"password": user["users__password"],
+			"first_name": user["users__first_name"],
+			"last_name": user["users__last_name"],
+			"created_at": user["users__created_at"],
+		}
+		
+		// Prepare account data
+		accountData := map[string]interface{}{
+			"id": user["user_accounts__id"],
+			"user_id": user["user_accounts__user_id"],
+			"account_type_id": user["user_accounts__account_type_id"],
+			"account_number": user["user_accounts__account_number"],
+			"balance": user["user_accounts__balance"],
+			"currency_id": user["user_accounts__currency_id"],
+		}
+
+		// Prepare group data
+		groupData := map[string]interface{}{
+			"id": user["groups__id"],
+			"name": user["groups__name"],
+		}
+
+		// Combine and return
+		var userRes UserResource
+		userJson, _ := json.Marshal(userData)
+		json.Unmarshal(userJson, &userRes)
+
+		var accountRes AccountResource
+		accountJson, _ := json.Marshal(accountData)
+		json.Unmarshal(accountJson, &accountRes)
+
+		var groupRes GroupResource
+		groupJson, _ := json.Marshal(groupData)
+		json.Unmarshal(groupJson, &groupRes)
+
+		userRes.Account = accountRes
+		userRes.Group = groupRes
+		res = append(res, userRes)
+	}
+	return res, nil
+}
+
+func (u *User) UpdateUser(key string, value interface{}, data map[string]interface{}) (UserResource, error) {
+	for _, v := range []string{"id", "created_at"} { // These fields cannot be updated
+		delete(data, v)
+	}
+	userAdapter := u.dbPort.NewUserAdapter()
+	user, err := userAdapter.Update(key, value, data)
+	if err != nil {
+		return UserResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+	var userRes UserResource
+	userJson, _ := json.Marshal(user)
+	json.Unmarshal(userJson, &userRes)
+	return userRes, nil
+}

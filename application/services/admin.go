@@ -112,3 +112,76 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 	userRes.Group = groupRes
 	return userRes, nil
 }
+
+func (u *Admin) GetAdmin(key string, value interface{}) (AdminResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	admin, err := userAdapter.Get(key, value)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("admin not found"),
+		}
+	}
+	var adminRes AdminResource
+	adminJson, _ := json.Marshal(admin)
+	json.Unmarshal(adminJson, &adminRes)
+	return adminRes, nil
+}
+
+func (u *Admin) ListAdmins() ([]AdminResource, error) {
+	userAdapter := u.dbPort.NewUserAdapter()
+	selector := userAdapter.NewUserCustomSelector("groups.name", "admin", "users.id", true).
+		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
+		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
+	data := selector.Query()
+
+	var res []AdminResource
+	for _, user := range data {
+		// Prepare user data
+		userData := map[string]interface{}{
+			"id": user["users__id"],
+			"email": user["users__email"],
+			"password": user["users__password"],
+			"first_name": user["users__first_name"],
+			"last_name": user["users__last_name"],
+			"created_at": user["users__created_at"],
+		}
+
+		// Prepare group data
+		groupData := map[string]interface{}{
+			"id": user["groups__id"],
+			"name": user["groups__name"],
+		}
+
+		// Combine and return
+		var adminRes AdminResource
+		userJson, _ := json.Marshal(userData)
+		json.Unmarshal(userJson, &adminRes)
+
+		var groupRes GroupResource
+		groupJson, _ := json.Marshal(groupData)
+		json.Unmarshal(groupJson, &groupRes)
+
+		adminRes.Group = groupRes
+		res = append(res, adminRes)
+	}
+	return res, nil
+}
+
+func (u *Admin) UpdateAdmin(key string, value interface{}, data map[string]interface{}) (AdminResource, error) {
+	for _, v := range []string{"id", "created_at"} { // These fields cannot be updated
+		delete(data, v)
+	}
+	userAdapter := u.dbPort.NewUserAdapter()
+	admin, err := userAdapter.Update(key, value, data)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("admin not found"),
+		}
+	}
+	var adminRes AdminResource
+	adminJson, _ := json.Marshal(admin)
+	json.Unmarshal(adminJson, &adminRes)
+	return adminRes, nil
+}
