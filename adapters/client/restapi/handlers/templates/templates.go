@@ -5,6 +5,17 @@ import (
 	"net/http"
 )
 
+type withData struct {
+	Status  	string      `json:"status"`
+	Message 	string      `json:"message"`
+	Data    	interface{} `json:"data"`
+}
+
+type withoutData struct {
+	Status  	string      `json:"status"`
+	Message 	string      `json:"message"`
+}
+
 // Code: Status code (e.g. 404, 200, 500)
 // Message: Message to display to the user
 // Data: Data to display to the user (applicable only to success responses)
@@ -12,38 +23,38 @@ func Template(w http.ResponseWriter, code int, message string, data interface{})
 	switch code {
 	case http.StatusOK:
 		w.WriteHeader(http.StatusOK)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusOK),
-			"data":   data,
-			"message": message,
+		res := withData{
+			Status:   http.StatusText(http.StatusOK),
+			Message:  message,
+			Data:     data,
 		}
 		return json.Marshal(res)
 	case http.StatusNotFound:
 		w.WriteHeader(http.StatusNotFound)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusNotFound),
-			"message": message,
+		res := withoutData{
+			Status:   http.StatusText(http.StatusNotFound),
+			Message:  message,
 		}
 		return json.Marshal(res)
 	case http.StatusBadRequest:
 		w.WriteHeader(http.StatusBadRequest)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusBadRequest),
-			"message": message,
+		res := withoutData{
+			Status:   http.StatusText(http.StatusBadRequest),
+			Message:  message,
 		}
 		return json.Marshal(res)
 	case http.StatusMethodNotAllowed:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusMethodNotAllowed),
-			"message": message,
+		res := withoutData{
+			Status:   http.StatusText(http.StatusMethodNotAllowed),
+			Message:  message,
 		}
 		return json.Marshal(res)
 	case http.StatusUnauthorized:
 		w.WriteHeader(http.StatusUnauthorized)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusUnauthorized),
-			"message": message,
+		res := withoutData{
+			Status:   http.StatusText(http.StatusUnauthorized),
+			Message:  message,
 		}
 		return json.Marshal(res)
 	// TODO: Add more cases here
@@ -51,9 +62,9 @@ func Template(w http.ResponseWriter, code int, message string, data interface{})
 
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
-		res := map[string]interface{}{
-			"status": http.StatusText(http.StatusInternalServerError),
-			"message": message,
+		res := withoutData{
+			Status:   http.StatusText(http.StatusInternalServerError),
+			Message:  message,
 		}
 		return json.Marshal(res)
 	}
