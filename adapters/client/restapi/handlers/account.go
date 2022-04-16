@@ -25,7 +25,6 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r) // Get the URL variables
 	var idVar string
 
 	// Get route group (user, staff, admin)
@@ -42,7 +41,8 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 		}
 		idVar = fmt.Sprintf("%v", id)
 	case "admin":
-		id, ok := vars["id"] // Get the id variable
+		urlVars := mux.Vars(r) // Get the URL variables
+		id, ok := urlVars["id"] // Get the id variable
 		if !ok {
 			res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
 			w.Write([]byte(res))

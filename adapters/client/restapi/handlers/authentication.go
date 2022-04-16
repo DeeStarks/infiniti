@@ -18,12 +18,12 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func GenerateToken(userId int, userGroupName string) (string, error) {
+func GenerateToken(userId int, userGroupName string, expiresAt int64) (string, error) {
 	claims := Claims{
 		UserId: 		userId,
 		UserGroupName: 	userGroupName,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 	time.Now().Add(time.Hour * 48).Unix(), // Token expires in 48 hours
+			ExpiresAt: 	expiresAt, // Token expires in 48 hours
 			Issuer:   	"Infiniti",
 			IssuedAt:  	time.Now().Unix(),
 		},
@@ -56,7 +56,8 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	token, err := GenerateToken(user.Id, user.Group.Name)
+	expiresAt := time.Now().Add(time.Hour * 48).Unix()
+	token, err := GenerateToken(user.Id, user.Group.Name, expiresAt)
 	if err != nil {
 		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 		w.Write([]byte(res))
@@ -64,6 +65,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	newData := make(map[string]interface{})
 	newData["token"] = token
+	newData["token_expires_at"] = expiresAt
 	newData["user"] = user
 	res, _ := templates.Template(w, http.StatusOK, "User successfully created", newData)
 	w.Write([]byte(res))
@@ -98,7 +100,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	
 		// Create a JWT token
-		token, err := GenerateToken(user.Id, "user")
+		expiresAt := time.Now().Add(time.Hour * 48)
+		token, err := GenerateToken(user.Id, "user", expiresAt.Unix())
 		if err != nil {
 			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 			w.Write([]byte(res))
@@ -106,6 +109,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		newData := make(map[string]interface{})
 		newData["token"] = token
+		newData["token_expires_at"] = expiresAt
 		newData["user"] = user
 		res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
 		w.Write([]byte(res))
@@ -119,7 +123,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	
 		// Create a JWT token
-		token, err := GenerateToken(staff.Id, "staff")
+		expiresAt := time.Now().Add(time.Hour * 48)
+		token, err := GenerateToken(staff.Id, "staff", expiresAt.Unix())
 		if err != nil {
 			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 			w.Write([]byte(res))
@@ -127,6 +132,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		newData := make(map[string]interface{})
 		newData["token"] = token
+		newData["token_expires_at"] = expiresAt
 		newData["staff"] = staff
 		res, _ := templates.Template(w, http.StatusOK, "User successfully logged in", newData)
 		w.Write([]byte(res))
@@ -140,7 +146,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create a JWT token
-		token, err := GenerateToken(admin.Id, "admin")
+		expiresAt := time.Now().Add(time.Hour * 48)
+		token, err := GenerateToken(admin.Id, "admin", expiresAt.Unix())
 		if err != nil {
 			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 			w.Write([]byte(res))
@@ -148,6 +155,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		newData := make(map[string]interface{})
 		newData["token"] = token
+		newData["token_expires_at"] = expiresAt
 		newData["admin"] = admin
 		res, _ := templates.Template(w, http.StatusOK, "Admin successfully logged in", newData)
 		w.Write([]byte(res))
