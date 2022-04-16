@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/deestarks/infiniti/adapters/framework/db/constants"
 	"github.com/lib/pq"
 )
 
@@ -181,4 +182,22 @@ func (mAdapt *UserAdapter) Delete(colName string, value interface{}) (UserModel,
 		return UserModel{}, fmt.Errorf("%s", err.Detail)
     }
 	return user, nil
+}
+
+// col: column name to select; value: value of the column;
+// order: column name to order by; isAsc: true, if you want to order by ascending.
+func (u *UserAdapter) NewUserCustomSelector(col string, value interface{}, order string, isAsc bool) *constants.CustomSelector {
+	return constants.NewCustomSelector(
+		u.adapter.db,
+		u.tableName,
+		[]string{
+			fmt.Sprintf("%s.id", u.tableName),
+			fmt.Sprintf("%s.first_name", u.tableName),
+			fmt.Sprintf("%s.last_name", u.tableName),
+			fmt.Sprintf("%s.email", u.tableName),
+			fmt.Sprintf("%s.password", u.tableName),
+			fmt.Sprintf("%s.created_at", u.tableName),
+		},
+		col, value, order, isAsc,
+	)
 }
