@@ -15,7 +15,15 @@ type Admin struct {
 	corePort 	core.CoreAppPort
 }
 
-type AdminResource struct {
+type AdminResource struct { // Foreign key resource for admin
+	Id 			int 				`json:"id"`
+	FirstName 	string 				`json:"first_name"`
+	LastName 	string 				`json:"last_name"`
+	Email 		string 				`json:"email"`
+	CreatedAt 	string 				`json:"created_at"`
+}
+
+type AdminFKResource struct { // Foreign key resource for admin
 	Id 			int 				`json:"id"`
 	FirstName 	string 				`json:"first_name"`
 	LastName 	string 				`json:"last_name"`
@@ -32,7 +40,7 @@ func (service *Service) NewAdminService() *Admin {
 	}
 }
 
-func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) {
+func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminFKResource, error) {
 	adapter := u.dbPort.NewUserAdapter()
 	// First check that all required fields are present
 	required := []string{"email", "password", "first_name", "last_name"}
@@ -44,7 +52,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 		}
 	}
 	if len(missing) > 0 {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: %s", missing),
 		}
@@ -53,7 +61,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 	// Hash the password
 	encyptPass, err := u.corePort.HashPassword(data["password"].(string))
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -70,7 +78,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 	// Create the admin
 	admin, err := adapter.Create(adminData)
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	err,
 		}
@@ -79,7 +87,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 	// Add the admin to the group
 	group, err := u.dbPort.NewGroupAdapter().Get("name", "admin")
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -90,7 +98,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 		"group_id": group.Id,
 	})
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -98,7 +106,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminResource, error) 
 
 	// Combine and return
 	var (
-		userRes 	AdminResource
+		userRes 	AdminFKResource
 		groupRes 	GroupResource
 	)
 	// User
@@ -128,14 +136,14 @@ func (u *Admin) GetAdmin(key string, value interface{}) (AdminResource, error) {
 	return adminRes, nil
 }
 
-func (u *Admin) ListAdmins() ([]AdminResource, error) {
+func (u *Admin) ListAdmins() ([]AdminFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	selector := userAdapter.NewUserCustomSelector("groups.name", "admin", "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
 	data := selector.Query()
 
-	var res []AdminResource
+	var res []AdminFKResource
 	for _, user := range data {
 		// Prepare user data
 		userData := map[string]interface{}{
@@ -154,7 +162,7 @@ func (u *Admin) ListAdmins() ([]AdminResource, error) {
 		}
 
 		// Combine and return
-		var adminRes AdminResource
+		var adminRes AdminFKResource
 		userJson, _ := json.Marshal(userData)
 		json.Unmarshal(userJson, &adminRes)
 

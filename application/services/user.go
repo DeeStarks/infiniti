@@ -21,6 +21,14 @@ type UserResource struct {
 	FirstName 	string 				`json:"first_name"`
 	LastName 	string 				`json:"last_name"`
 	Email 		string 				`json:"email"`
+	CreatedAt 	string 				`json:"created_at"`
+}
+
+type UserFKResource struct { // User with foreign keys
+	Id 			int 				`json:"id"`
+	FirstName 	string 				`json:"first_name"`
+	LastName 	string 				`json:"last_name"`
+	Email 		string 				`json:"email"`
 	Group 		GroupResource 		`json:"group"`
 	Account 	AccountResource		`json:"account"`
 	CreatedAt 	string 				`json:"created_at"`
@@ -33,7 +41,7 @@ func (service *Service) NewUserService() *User {
 	}
 }
 
-func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
+func (u *User) CreateUser(data map[string]interface{}) (UserFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	// First check that all required fields are present
 	required := []string{"email", "password", "first_name", "last_name", "account_type_id", "currency_id"}
@@ -45,7 +53,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 		}
 	}
 	if len(missing) > 0 {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: %s", missing),
 		}
@@ -54,7 +62,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 	// Hash the password
 	encyptPass, err := u.corePort.HashPassword(data["password"].(string))
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -71,7 +79,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 	// Create the user
 	returnedUser, err := userAdapter.Create(userData)
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	err,
 		}
@@ -91,7 +99,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 		"account_number": accountNo,
 	})
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -101,7 +109,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 	// Get the group id
 	group, err := u.dbPort.NewGroupAdapter().Get("name", "user")
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -113,7 +121,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 		"group_id": group.Id,
 	})
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -121,7 +129,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserResource, error) {
 
 	// Combine and return
 	var (
-		userRes 	UserResource
+		userRes 	UserFKResource
 		groupRes 	GroupResource
 		acctRes 	AccountResource
 	)
@@ -156,7 +164,7 @@ func (u *User) GetUser(key string, value interface{}) (UserResource, error) {
 	return userRes, nil
 }
 
-func (u *User) ListUsers() ([]UserResource, error) {
+func (u *User) ListUsers() ([]UserFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	selector := userAdapter.NewUserCustomSelector("groups.name", "user", "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
@@ -164,7 +172,7 @@ func (u *User) ListUsers() ([]UserResource, error) {
 		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
 	data := selector.Query()
 
-	var res []UserResource
+	var res []UserFKResource
 	for _, user := range data {
 		// Prepare user data
 		userData := map[string]interface{}{
@@ -193,7 +201,7 @@ func (u *User) ListUsers() ([]UserResource, error) {
 		}
 
 		// Combine and return
-		var userRes UserResource
+		var userRes UserFKResource
 		userJson, _ := json.Marshal(userData)
 		json.Unmarshal(userJson, &userRes)
 

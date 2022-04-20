@@ -22,7 +22,7 @@ func (service *Service) NewUserAuthService() *UserAuth {
 	}
 }
 
-func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResource, error) {
+func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserFKResource, error) {
 	requires := []string{"email", "password"}
 	var missing string
 
@@ -32,7 +32,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 		}
 	}
 	if len(missing) > 0 {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
 		}
@@ -45,14 +45,14 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 	userAdapter := auth.dbPort.NewUserAdapter()
 	user, err := userAdapter.Get("email", email)
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("User not found"),
 		}
 	}
 
 	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("invalid password"),
 		}
@@ -62,7 +62,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 	accountAdapter := auth.dbPort.NewAccountAdapter()
 	account, err := accountAdapter.Get("user_id", user.Id)
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -71,14 +71,14 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 	// Get user's group
 	userGroup, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
 	}
 	group, err := auth.dbPort.NewGroupAdapter().Get("id", userGroup.GroupId)
 	if err != nil {
-		return UserResource{}, &utils.RequestError{
+		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -86,7 +86,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 
 	// Serialization and return
 	var (
-		userRes 	UserResource
+		userRes 	UserFKResource
 		acctRes 	AccountResource
 		groupRes 	GroupResource
 	)
@@ -106,7 +106,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserResourc
 	return userRes, nil
 }
 
-func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResource, error) {
+func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffFKResource, error) {
 	requires := []string{"email", "password"}
 	var missing string
 
@@ -116,7 +116,7 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 		}
 	}
 	if len(missing) > 0 {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
 		}
@@ -129,14 +129,14 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 	userAdapter := auth.dbPort.NewUserAdapter()
 	user, err := userAdapter.Get("email", email)
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("Staff not found"),
 		}
 	}
 
 	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("invalid password"),
 		}
@@ -145,14 +145,14 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 	// Get group
 	groupObj, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
 	}
 	group, err := auth.dbPort.NewGroupAdapter().Get("id", groupObj.GroupId)
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -160,7 +160,7 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 
 	// Confirm it's a staff
 	if group.Name != "staff" {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("User is not a staff"),
 		}
@@ -168,7 +168,7 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 
 	// Serialization and return
 	var (
-		staffRes 	StaffResource
+		staffRes 	StaffFKResource
 		groupRes 	GroupResource
 	)
 	// User
@@ -184,7 +184,7 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffResou
 }
 
 
-func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResource, error) {
+func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminFKResource, error) {
 	requires := []string{"email", "password"}
 	var missing string
 
@@ -194,7 +194,7 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResou
 		}
 	}
 	if len(missing) > 0 {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
 		}
@@ -207,14 +207,14 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResou
 	userAdapter := auth.dbPort.NewUserAdapter()
 	user, err := userAdapter.Get("email", email)
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("Admin not found"),
 		}
 	}
 
 	if err = auth.corePort.ComparePassword(user.Password, password); err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("invalid password"),
 		}
@@ -223,14 +223,14 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResou
 	// Get group
 	groupObj, err := auth.dbPort.NewUserGroupAdapter().Get("user_id", user.Id)
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
 	}
 	group, err := auth.dbPort.NewGroupAdapter().Get("id", groupObj.GroupId)
 	if err != nil {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -238,7 +238,7 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResou
 
 	// Confirm it's an admin
 	if group.Name != "admin" {
-		return AdminResource{}, &utils.RequestError{
+		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("User is not an admin"),
 		}
@@ -246,7 +246,7 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminResou
 
 	// Serialization and return
 	var (
-		adminRes 	AdminResource
+		adminRes 	AdminFKResource
 		groupRes 	GroupResource
 	)
 	// User

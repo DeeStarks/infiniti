@@ -15,7 +15,15 @@ type Staff struct {
 	corePort 	core.CoreAppPort
 }
 
-type StaffResource struct {
+type StaffResource struct { // Staff with foreign keys
+	Id 			int 				`json:"id"`
+	FirstName 	string 				`json:"first_name"`
+	LastName 	string 				`json:"last_name"`
+	Email 		string 				`json:"email"`
+	CreatedAt 	string 				`json:"created_at"`
+}
+
+type StaffFKResource struct { // Staff with foreign keys
 	Id 			int 				`json:"id"`
 	FirstName 	string 				`json:"first_name"`
 	LastName 	string 				`json:"last_name"`
@@ -32,7 +40,7 @@ func (service *Service) NewStaffService() *Staff {
 	}
 }
 
-func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) {
+func (u *Staff) CreateStaff(data map[string]interface{}) (StaffFKResource, error) {
 	adapter := u.dbPort.NewUserAdapter()
 	// First check that all required fields are present
 	required := []string{"email", "password", "first_name", "last_name"}
@@ -44,7 +52,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 		}
 	}
 	if len(missing) > 0 {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	fmt.Errorf("missing required fields: %s", missing),
 		}
@@ -53,7 +61,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 	// Hash the password
 	encyptPass, err := u.corePort.HashPassword(data["password"].(string))
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -70,7 +78,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 	// Create the staff
 	staff, err := adapter.Create(staffData)
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
 			Err: 	err,
 		}
@@ -79,7 +87,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 	// Add the staff to the group
 	group, err := u.dbPort.NewGroupAdapter().Get("name", "staff")
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -90,7 +98,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 		"group_id": group.Id,
 	})
 	if err != nil {
-		return StaffResource{}, &utils.RequestError{
+		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusInternalServerError,
 			Err: 	err,
 		}
@@ -98,7 +106,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffResource, error) 
 
 	// Combine and return
 	var (
-		userRes 	StaffResource
+		userRes 	StaffFKResource
 		groupRes 	GroupResource
 	)
 	// User
@@ -128,14 +136,14 @@ func (u *Staff) GetStaff(key string, value interface{}) (StaffResource, error) {
 	return staffRes, nil
 }
 
-func (u *Staff) ListStaff() ([]StaffResource, error) {
+func (u *Staff) ListStaff() ([]StaffFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	selector := userAdapter.NewUserCustomSelector("groups.name", "staff", "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
 	data := selector.Query()
 
-	var res []StaffResource
+	var res []StaffFKResource
 	for _, user := range data {
 		// Prepare user data
 		userData := map[string]interface{}{
@@ -154,7 +162,7 @@ func (u *Staff) ListStaff() ([]StaffResource, error) {
 		}
 
 		// Combine and return
-		var staffRes StaffResource
+		var staffRes StaffFKResource
 		userJson, _ := json.Marshal(userData)
 		json.Unmarshal(userJson, &staffRes)
 
