@@ -8,24 +8,24 @@ import (
 
 // Custom methods
 type CustomSelector struct {
-	adapter 	*sql.DB
-	tableName 	string
-	cols 		[]string
-	condition 	struct {
-		col 	string
-		val 	interface{}
+	adapter 	*sql.DB 		// Database Adapter
+	tableName 	string			// Base table name (e.g. "users" in "SELECT * FROM users")
+	cols 		[]string		// Columns to select
+	condition 	struct {		// Condition to select (e.g. "WHERE users.id = 1")
+		col 	string			// Column name (e.g. "users.id")
+		val 	interface{}		// Value (e.g. 1)
 	}
-	joins 		[]struct {
-		table 	string
-		col 	string
+	joins 		[]struct {		// Joins to select (e.g. "LEFT JOIN groups ON groups.user_id = users.id")
+		table 	string			// Table name (e.g. "groups")
+		col 	string			// Column name (e.g. "groups.user_id")
 		on 		struct {
-			table 	string
-			col 	string
+			table 	string		// Table name to check (e.g. "users")
+			col 	string		// Column name to check (e.g. "users.id")
 		}
 	}
-	order 		struct {
-		col 	string
-		asc 	bool
+	order 		struct {		// Order of the result (e.g. "ORDER BY users.id ASC")
+		col 	string			// Column name (e.g. "users.id")
+		asc 	bool			// Ascending (true) or descending (false)
 	}
 }
 
