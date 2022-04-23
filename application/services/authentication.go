@@ -34,7 +34,7 @@ func (auth *UserAuth) AuthenticateUser(data map[string]interface{}) (UserFKResou
 	if len(missing) > 0 {
 		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
+			Err: 	fmt.Errorf("missing required field(s): '%s'", missing[2:]),
 		}
 	}
 
@@ -118,7 +118,7 @@ func (auth *UserAuth) AuthenticateStaff(data map[string]interface{}) (StaffFKRes
 	if len(missing) > 0 {
 		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
+			Err: 	fmt.Errorf("missing required field(s): '%s'", missing[2:]),
 		}
 	}
 
@@ -196,7 +196,7 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminFKRes
 	if len(missing) > 0 {
 		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: '%s'", missing[2:]),
+			Err: 	fmt.Errorf("missing required field(s): '%s'", missing[2:]),
 		}
 	}
 
@@ -259,4 +259,61 @@ func (auth *UserAuth) AuthenticateAdmin(data map[string]interface{}) (AdminFKRes
 	// Combine and return
 	adminRes.Group = groupRes
 	return adminRes, nil
+}
+
+// id: user id;
+// data: require "current_password" and "new_password";
+func (auth *UserAuth) UpdatePassword(id int, data map[string]interface{}) error {
+	// First check that all required fields are present
+	var missing string
+	for _, field := range []string{"new_password", "current_password"} {
+		if _, ok := data[field]; !ok {
+			missing = fmt.Sprintf("%s, %s", missing, field)
+		}
+	}
+	if len(missing) > 0 {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("missing required field(s): %s", missing[2:]),
+		}
+	}
+
+	// Confirm user's existence
+	user, err := auth.dbPort.NewUserAdapter().Get("id", id)
+	if err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+
+	current := data["current_password"].(string)
+	new := data["new_password"].(string)
+
+	// Check password
+	if err := auth.corePort.ComparePassword(user.Password, current); err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("invalid password"),
+		}
+	}
+	hashedPassword, err := auth.corePort.HashPassword(new)
+	if err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	err,
+		}
+	}
+
+	userAdapter := auth.dbPort.NewUserAdapter()
+	_, err = userAdapter.Update("id", id, map[string]interface{}{
+		"password": hashedPassword,
+	})
+	if err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	err,
+		}
+	}
+	return nil
 }

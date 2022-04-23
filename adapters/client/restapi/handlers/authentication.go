@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/deestarks/infiniti/adapters/client/restapi/constants"
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/config"
 	"github.com/deestarks/infiniti/utils"
@@ -164,4 +167,48 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(res))
 		return
 	}
+}
+
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost { // Only accept POST requests
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Accepts only POST requests", nil)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(res))
+		return
+	}
+
+	data := make(map[string]interface{})
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	// Get the user ID from the request context
+	ctxId := r.Context().Value(constants.CTXKey("user_id"))
+	if ctxId == nil {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Unauthenticated", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	idVar, ok := ctxId.(float64)
+	if !ok {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid user id. Must be a number", nil)
+		w.Write([]byte(res))
+		return
+	}
+	
+	id, _ := strconv.Atoi(fmt.Sprintf("%v", idVar)) // Convert the id variable to an int
+
+	err = h.appPort.NewUserAuthService().UpdatePassword(id, data)
+	if err, ok := err.(*utils.RequestError); ok {
+		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	res, _ := templates.Template(w, http.StatusOK, "Password updated successfully", nil)
+	w.Write([]byte(res))
 }
