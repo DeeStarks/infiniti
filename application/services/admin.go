@@ -185,7 +185,7 @@ func (u *Admin) UpdateAdmin(key string, value interface{}, data map[string]inter
 	if err != nil {
 		return AdminResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("admin not found"),
+			Err: 	err,
 		}
 	}
 	var adminRes AdminResource

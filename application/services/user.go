@@ -229,7 +229,7 @@ func (u *User) UpdateUser(key string, value interface{}, data map[string]interfa
 	if err != nil {
 		return UserResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("user not found"),
+			Err: 	err,
 		}
 	}
 	var userRes UserResource

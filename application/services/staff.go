@@ -186,7 +186,7 @@ func (u *Staff) UpdateStaff(key string, value interface{}, data map[string]inter
 	if err != nil {
 		return StaffResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("staff not found"),
+			Err: 	err,
 		}
 	}
 	var staffRes StaffResource
