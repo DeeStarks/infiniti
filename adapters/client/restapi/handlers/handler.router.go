@@ -54,6 +54,7 @@ func (r *Router) userRoutes(h *Handler) {
 
 	// Routes here
 	subrouter.HandleFunc("/account", h.SingleAccount).Name("user:single-account")
+	subrouter.HandleFunc("/profile", h.Profile).Name("user:profile")
 
 
 	// Middleware registration
@@ -67,6 +68,7 @@ func (r *Router) staffRoutes(h *Handler) {
 	subrouter := r.router.PathPrefix("/staff").Subrouter()
 
 	// Routes here
+	subrouter.HandleFunc("/profile", h.Profile).Name("staff:profile")
 
 
 	// Middleware registration
@@ -80,9 +82,11 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter := r.router.PathPrefix("/admin").Subrouter()
 
 	// Routes here
-	subrouter.HandleFunc("/users", h.ListUsers).Name("admin:list-users")
-	subrouter.HandleFunc("/staff", h.ListStaff).Name("admin:list-staff")
-	subrouter.HandleFunc("/admins", h.ListAdmin).Name("admin:list-admins")
+	subrouter.HandleFunc("/profile", h.Profile).Name("admin:profile")
+
+	subrouter.HandleFunc("/users", h.Users).Name("admin:group-users")
+	subrouter.HandleFunc("/staff", h.Staff).Name("admin:group-staff")
+	subrouter.HandleFunc("/admins", h.Admin).Name("admin:group-admins")
 	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("admin:list-accounts")
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("admin:single-account")
 

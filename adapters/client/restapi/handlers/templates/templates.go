@@ -29,6 +29,14 @@ func Template(w http.ResponseWriter, code int, message string, data interface{})
 			Data:     data,
 		}
 		return json.Marshal(res)
+	case http.StatusCreated:
+		w.WriteHeader(http.StatusCreated)
+		res := withData{
+			Status:   http.StatusText(http.StatusCreated),
+			Message:  message,
+			Data:     data,
+		}
+		return json.Marshal(res)
 	case http.StatusNotFound:
 		w.WriteHeader(http.StatusNotFound)
 		res := withoutData{
