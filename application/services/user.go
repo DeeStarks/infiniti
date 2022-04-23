@@ -55,7 +55,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserFKResource, error) {
 	if len(missing) > 0 {
 		return UserFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: %s", missing),
+			Err: 	fmt.Errorf("missing required field(s): %s", missing[2:]),
 		}
 	}
 

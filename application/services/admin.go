@@ -54,7 +54,7 @@ func (u *Admin) CreateAdmin(data map[string]interface{}) (AdminFKResource, error
 	if len(missing) > 0 {
 		return AdminFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: %s", missing),
+			Err: 	fmt.Errorf("missing required field(s): %s", missing[2:]),
 		}
 	}
 

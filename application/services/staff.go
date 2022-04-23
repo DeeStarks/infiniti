@@ -54,7 +54,7 @@ func (u *Staff) CreateStaff(data map[string]interface{}) (StaffFKResource, error
 	if len(missing) > 0 {
 		return StaffFKResource{}, &utils.RequestError{
 			Code:	http.StatusBadRequest,
-			Err: 	fmt.Errorf("missing required fields: %s", missing),
+			Err: 	fmt.Errorf("missing required field(s): %s", missing[2:]),
 		}
 	}
 
