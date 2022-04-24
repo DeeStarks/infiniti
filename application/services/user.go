@@ -297,6 +297,17 @@ func (u *User) UpdateUser(key string, value interface{}, data map[string]interfa
 		delete(data, v)
 	}
 	userAdapter := u.dbPort.NewUserAdapter()
+
+	// Confirm user exists
+	_, err := userAdapter.Get(key, value)
+	if err != nil {
+		return UserResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+
+	// Update user
 	user, err := userAdapter.Update(key, value, data)
 	if err != nil {
 		return UserResource{}, &utils.RequestError{

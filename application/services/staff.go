@@ -188,6 +188,17 @@ func (u *Staff) UpdateStaff(key string, value interface{}, data map[string]inter
 		delete(data, v)
 	}
 	userAdapter := u.dbPort.NewUserAdapter()
+
+	// Confirm staff exists
+	_, err := userAdapter.Get(key, value)
+	if err != nil {
+		return StaffResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("staff not found"),
+		}
+	}
+
+	// Update staff
 	staff, err := userAdapter.Update(key, value, data)
 	if err != nil {
 		return StaffResource{}, &utils.RequestError{

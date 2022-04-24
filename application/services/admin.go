@@ -187,6 +187,17 @@ func (u *Admin) UpdateAdmin(key string, value interface{}, data map[string]inter
 		delete(data, v)
 	}
 	userAdapter := u.dbPort.NewUserAdapter()
+
+	// Confirm admin exists
+	_, err := userAdapter.Get(key, value)
+	if err != nil {
+		return AdminResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("admin not found"),
+		}
+	}
+
+	// Update admin
 	admin, err := userAdapter.Update(key, value, data)
 	if err != nil {
 		return AdminResource{}, &utils.RequestError{
