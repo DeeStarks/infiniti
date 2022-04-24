@@ -112,7 +112,7 @@ func (c *CustomSelector) Join(table string, col string, onTable string, onCol st
 }
 
 // adapter: Database Adapter
-func (c *CustomSelector) Query() []map[string]interface{} {
+func (c *CustomSelector) Query() ([]map[string]interface{}, error) {
 	var (
 		rows 		*sql.Rows
 		err 		error
@@ -124,7 +124,7 @@ func (c *CustomSelector) Query() []map[string]interface{} {
 		cols = append(cols, strings.Replace(col, ".", "__", -1)) // replace "." with "__"
 	}
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -144,5 +144,5 @@ func (c *CustomSelector) Query() []map[string]interface{} {
 		}
 		result = append(result, data)
 	}
-	return result
+	return result, nil
 }
