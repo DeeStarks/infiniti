@@ -88,8 +88,11 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter.HandleFunc("/profile/change-password", h.ChangePassword).Name("admin:change-password")
 
 	subrouter.HandleFunc("/users", h.Users).Name("admin:group-users")
+	subrouter.HandleFunc("/users/{id}", h.SingleUser).Name("admin:group-users-single")
 	subrouter.HandleFunc("/staff", h.Staff).Name("admin:group-staff")
+	subrouter.HandleFunc("/staff/{id}", h.SingleStaff).Name("admin:group-staff-single")
 	subrouter.HandleFunc("/admins", h.Admin).Name("admin:group-admins")
+	subrouter.HandleFunc("/admins/{id}", h.SingleAdmin).Name("admin:group-admin-single")
 	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("admin:list-accounts")
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("admin:single-account")
 

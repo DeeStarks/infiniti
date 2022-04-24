@@ -141,7 +141,13 @@ func (u *Staff) ListStaff() ([]StaffFKResource, error) {
 	selector := userAdapter.NewUserCustomSelector("groups.name", "staff", "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
-	data := selector.Query()
+	data, err := selector.Query()
+	if err != nil {
+		return []StaffFKResource{}, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
 
 	var res []StaffFKResource
 	for _, user := range data {
@@ -193,4 +199,37 @@ func (u *Staff) UpdateStaff(key string, value interface{}, data map[string]inter
 	staffJson, _ := json.Marshal(staff)
 	json.Unmarshal(staffJson, &staffRes)
 	return staffRes, nil
+}
+
+func (u *Staff) DeleteStaff(id int) error {
+	// First check if user exists
+	userAdapter := u.dbPort.NewUserAdapter()
+	_, err := userAdapter.Get("id", id)
+	if err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("staff not found"),
+		}
+	}
+
+	// Delete all references to the user
+	// 1. "user_permissions" table
+	userPermissionAdapter := u.dbPort.NewUserPermissionsAdapter()
+	userPermissionAdapter.Delete("user_id", id)
+	
+	// 2. "user_groups" table
+	userGroupAdapter := u.dbPort.NewUserGroupAdapter()
+	userGroupAdapter.Delete("user_id", id)
+
+	// 3. "user_accounts" table
+	userAccountAdapter := u.dbPort.NewAccountAdapter()
+	userAccountAdapter.Delete("user_id", id)
+
+	// 4. "user_transactions" table
+	userTransactionAdapter := u.dbPort.NewTransactionAdapter()
+	userTransactionAdapter.Delete("user_id", id)
+
+	// Delete the user
+	userAdapter.Delete("id", id)
+	return nil
 }

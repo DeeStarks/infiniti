@@ -164,13 +164,85 @@ func (u *User) GetUser(key string, value interface{}) (UserResource, error) {
 	return userRes, nil
 }
 
+func (u *User) GetUserWithFK(key string, value interface{}) (UserFKResource, error) { // Include foreign keys (group, account)
+	userAdapter := u.dbPort.NewUserAdapter()
+	selector := userAdapter.NewUserCustomSelector("users."+key, value, "users.id", true).
+		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
+		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"}).
+		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
+	data, err := selector.Query()
+	if err != nil {
+		return UserFKResource{}, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
+
+	if len(data) < 1 {
+		return UserFKResource{}, &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+	user := data[0] // There should only be one user, so we can just take the first one
+
+	// Prepare user data
+	userData := map[string]interface{}{
+		"id": user["users__id"],
+		"email": user["users__email"],
+		"password": user["users__password"],
+		"first_name": user["users__first_name"],
+		"last_name": user["users__last_name"],
+		"created_at": user["users__created_at"],
+	}
+	
+	// Prepare account data
+	accountData := map[string]interface{}{
+		"id": user["user_accounts__id"],
+		"user_id": user["user_accounts__user_id"],
+		"account_type_id": user["user_accounts__account_type_id"],
+		"account_number": user["user_accounts__account_number"],
+		"balance": user["user_accounts__balance"],
+		"currency_id": user["user_accounts__currency_id"],
+	}
+
+	// Prepare group data
+	groupData := map[string]interface{}{
+		"id": user["groups__id"],
+		"name": user["groups__name"],
+	}
+
+	// Combine and return
+	var userRes UserFKResource
+	userJson, _ := json.Marshal(userData)
+	json.Unmarshal(userJson, &userRes)
+
+	var accountRes AccountResource
+	accountJson, _ := json.Marshal(accountData)
+	json.Unmarshal(accountJson, &accountRes)
+
+	var groupRes GroupResource
+	groupJson, _ := json.Marshal(groupData)
+	json.Unmarshal(groupJson, &groupRes)
+
+	userRes.Account = accountRes
+	userRes.Group = groupRes
+	return userRes, nil
+}
+
 func (u *User) ListUsers() ([]UserFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
 	selector := userAdapter.NewUserCustomSelector("groups.name", "user", "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"}).
 		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
-	data := selector.Query()
+	data, err := selector.Query()
+	if err != nil {
+		return []UserFKResource{}, &utils.RequestError{
+			Code:	http.StatusInternalServerError,
+			Err: 	err,
+		}
+	}
 
 	var res []UserFKResource
 	for _, user := range data {
@@ -236,4 +308,37 @@ func (u *User) UpdateUser(key string, value interface{}, data map[string]interfa
 	userJson, _ := json.Marshal(user)
 	json.Unmarshal(userJson, &userRes)
 	return userRes, nil
+}
+
+func (u *User) DeleteUser(id int) error {
+	// First check if user exists
+	userAdapter := u.dbPort.NewUserAdapter()
+	_, err := userAdapter.Get("id", id)
+	if err != nil {
+		return &utils.RequestError{
+			Code:	http.StatusBadRequest,
+			Err: 	fmt.Errorf("user not found"),
+		}
+	}
+
+	// Delete all references to the user
+	// 1. "user_permissions" table
+	userPermissionAdapter := u.dbPort.NewUserPermissionsAdapter()
+	userPermissionAdapter.Delete("user_id", id)
+	
+	// 2. "user_groups" table
+	userGroupAdapter := u.dbPort.NewUserGroupAdapter()
+	userGroupAdapter.Delete("user_id", id)
+
+	// 3. "user_accounts" table
+	userAccountAdapter := u.dbPort.NewAccountAdapter()
+	userAccountAdapter.Delete("user_id", id)
+
+	// 4. "user_transactions" table
+	userTransactionAdapter := u.dbPort.NewTransactionAdapter()
+	userTransactionAdapter.Delete("user_id", id)
+
+	// Delete the user
+	userAdapter.Delete("id", id)
+	return nil
 }

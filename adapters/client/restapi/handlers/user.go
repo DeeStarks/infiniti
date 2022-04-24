@@ -9,18 +9,104 @@ import (
 	"github.com/deestarks/infiniti/adapters/client/restapi/constants"
 	"github.com/deestarks/infiniti/adapters/client/restapi/handlers/templates"
 	"github.com/deestarks/infiniti/utils"
+	"github.com/gorilla/mux"
 )
 
 func (h *Handler) Users(w http.ResponseWriter, r *http.Request) {
-	users, err := h.appPort.NewUserService().ListUsers()
-	if err, ok := err.(*utils.RequestError); ok {
-		res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+	switch r.Method {
+	case http.MethodGet:
+		users, err := h.appPort.NewUserService().ListUsers()
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+	
+		res, _ := templates.Template(w, http.StatusOK, "Users successfully retrieved", users)
+		w.Write([]byte(res))
+	case http.MethodPost:
+		data := make(map[string]interface{})
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		user, err := h.appPort.NewUserService().CreateUser(data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusCreated, "User successfully created", user)
+		w.Write([]byte(res))
+	default:
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		w.Write([]byte(res))
+	}
+}
+
+func (h *Handler) SingleUser(w http.ResponseWriter, r *http.Request) {
+	urlVars := mux.Vars(r) // Get the URL variables
+	idVar, ok := urlVars["id"] // Get the id variable
+	if !ok {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
 		w.Write([]byte(res))
 		return
 	}
 
-	res, _ := templates.Template(w, http.StatusOK, "Users successfully retrieved", users)
-	w.Write([]byte(res))
+	userId, err := strconv.Atoi(idVar)
+	if err != nil {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid \"id\" variable. Must be an integer", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		user, err := h.appPort.NewUserService().GetUserWithFK("id", userId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "User successfully retrieved", user)
+		w.Write([]byte(res))
+	case http.MethodPut:
+		data := make(map[string]interface{})
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		user, err := h.appPort.NewUserService().UpdateUser("id", userId, data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "User successfully updated", user)
+		w.Write([]byte(res))
+	case http.MethodDelete:
+		err := h.appPort.NewUserService().DeleteUser(userId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "User successfully deleted", nil)
+		w.Write([]byte(res))
+	default:
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		w.Write([]byte(res))
+	}
 }
 
 func (h *Handler) Staff(w http.ResponseWriter, r *http.Request) {
@@ -44,14 +130,75 @@ func (h *Handler) Staff(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		admin, err := h.appPort.NewStaffService().CreateStaff(data)
+		staff, err := h.appPort.NewStaffService().CreateStaff(data)
 		if err, ok := err.(*utils.RequestError); ok {
 			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
 			w.Write([]byte(res))
 			return
 		}
 
-		res, _ := templates.Template(w, http.StatusCreated, "Staff successfully created", admin)
+		res, _ := templates.Template(w, http.StatusCreated, "Staff successfully created", staff)
+		w.Write([]byte(res))
+	default:
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		w.Write([]byte(res))
+	}
+}
+
+func (h *Handler) SingleStaff(w http.ResponseWriter, r *http.Request) {
+	urlVars := mux.Vars(r) // Get the URL variables
+	idVar, ok := urlVars["id"] // Get the id variable
+	if !ok {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	staffId, err := strconv.Atoi(idVar)
+	if err != nil {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid \"id\" variable. Must be an integer", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		staff, err := h.appPort.NewStaffService().GetStaff("id", staffId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Staff successfully retrieved", staff)
+		w.Write([]byte(res))
+	case http.MethodPut:
+		data := make(map[string]interface{})
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		staff, err := h.appPort.NewStaffService().UpdateStaff("id", staffId, data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Staff successfully updated", staff)
+		w.Write([]byte(res))
+	case http.MethodDelete:
+		err := h.appPort.NewStaffService().DeleteStaff(staffId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Staff successfully deleted", nil)
 		w.Write([]byte(res))
 	default:
 		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
@@ -95,6 +242,68 @@ func (h *Handler) Admin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) SingleAdmin(w http.ResponseWriter, r *http.Request) {
+	urlVars := mux.Vars(r) // Get the URL variables
+	idVar, ok := urlVars["id"] // Get the id variable
+	if !ok {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Missing \"id\" variable", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	adminId, err := strconv.Atoi(idVar)
+	if err != nil {
+		res, _ := templates.Template(w, http.StatusBadRequest, "Invalid \"id\" variable. Must be an integer", nil)
+		w.Write([]byte(res))
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		admin, err := h.appPort.NewAdminService().GetAdmin("id", adminId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Admin successfully retrieved", admin)
+		w.Write([]byte(res))
+	case http.MethodPut:
+		data := make(map[string]interface{})
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			res, _ := templates.Template(w, http.StatusBadRequest, "Invalid JSON data", nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		admin, err := h.appPort.NewAdminService().UpdateAdmin("id", adminId, data)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Admin successfully updated", admin)
+		w.Write([]byte(res))
+	case http.MethodDelete:
+		err := h.appPort.NewAdminService().DeleteAdmin(adminId)
+		if err, ok := err.(*utils.RequestError); ok {
+			res, _ := templates.Template(w, err.StatusCode(), err.Error(), nil)
+			w.Write([]byte(res))
+			return
+		}
+
+		res, _ := templates.Template(w, http.StatusOK, "Admin successfully deleted", nil)
+		w.Write([]byte(res))
+	default:
+		res, _ := templates.Template(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		w.Write([]byte(res))
+	}
+}
+
+// The "Profile" function will get the user's id only from the request header
 func (h *Handler) Profile(w http.ResponseWriter, r *http.Request) {
 	var idVar float64
 
