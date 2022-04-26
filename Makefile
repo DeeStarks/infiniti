@@ -9,7 +9,10 @@ db-shell:
 		echo "Database shell closed!\n$(LINE_THROUGH)"
 
 start:
-	@docker-compose up
+	@docker-compose up -d
+
+logs:
+	@docker-compose logs
 
 keygen:
 	@docker-compose exec infiniti-web openssl rand -hex 32 | xargs
