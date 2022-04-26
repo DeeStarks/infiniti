@@ -59,8 +59,8 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	expiresAt := time.Now().Add(time.Hour * 48).Unix()
-	token, err := GenerateToken(user.Id, user.Group.Name, expiresAt)
+	expiresAt := time.Now().Add(time.Hour * 48)
+	token, err := GenerateToken(user.Id, user.Group.Name, expiresAt.Unix())
 	if err != nil {
 		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
 		w.Write([]byte(res))
