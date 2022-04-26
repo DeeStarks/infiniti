@@ -12,8 +12,8 @@ NB: Make sure to have docker installed and running. For docker installation, see
 - `cd infiniti`
 - Create a `.env` file in the root directory of the project.
 - Copy the content of the `.env.example` file to the `.env` file. Change the values of the variables according to your choice or leave them as they are. ***(Important: the `RESTAPI_SECRET` variable is important. You can generate one using `make keygen` command)***
-- `make migrate-up` - Migrates the database schema.
 - `make start` - To start the application.
+- `make migrate-up` - Migrates the database schema.
 - `make cli-createadmin` - To create an admin user.
 
 App will be available at `http://localhost:8000`. `curl http://localhost:8000/api/v1/` will return a welcome message.
@@ -25,15 +25,16 @@ App will be available at `http://localhost:8000`. `curl http://localhost:8000/ap
 3. `make migrate-down` - Same as `make migrate-up` but runs `*.down.sql` files in reverse order.
 4. `make start` - Starts the app.
 5. `make stop` - Stops the app.
-6. `make build` - Builds the app into the `bin/infiniti` binary.
-7. `make install` - Installs all uninstalled dependencies found in the app.
-8. `make install PKG=<dependency>` - Installs a specific dependency. (e.g. `make install PKG=github.com/gorilla/mux`)
-9. `make tidy` - Equivalent to `go mod tidy`, but executed directly inside the app's container.
-10. `make shell` - Opens an interactive shell inside the app's container.
-11. `make test` - Recursively run all tests OR pass a directory as an argument to run the tests in a directory (e.g. `make test TESTDIR=github.com/deestarks/infiniti/adapters/framework/db` to run the tests in the `db` directory).
-12. `make db-shell` - Opens an interactive shell for the database.
-13. `make keygen` - Generates a random 32-character string.
-14. `make cli-createadmin` - To create an admin user from the command line.
+6. `make log` - Shows the app logs.
+7. `make build` - Builds the app into the `bin/infiniti` binary.
+8. `make install` - Installs all uninstalled dependencies found in the app.
+9. `make install PKG=<dependency>` - Installs a specific dependency. (e.g. `make install PKG=github.com/gorilla/mux`)
+10. `make tidy` - Equivalent to `go mod tidy`, but executed directly inside the app's container.
+11. `make shell` - Opens an interactive shell inside the app's container.
+12. `make test` - Recursively run all tests OR pass a directory as an argument to run the tests in a directory (e.g. `make test TESTDIR=github.com/deestarks/infiniti/adapters/framework/db` to run the tests in the `db` directory).
+13. `make db-shell` - Opens an interactive shell for the database.
+14. `make keygen` - Generates a random 32-character string.
+15. `make cli-createadmin` - To create an admin user from the command line.
 
 
 ### Project structure
