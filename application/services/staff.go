@@ -15,21 +15,21 @@ type Staff struct {
 	corePort 	core.CoreAppPort
 }
 
-type StaffResource struct { // Staff with foreign keys
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	CreatedAt 	string 				`json:"created_at"`
+type StaffResource struct {
+	Id 			int 	`json:"id"`
+	FirstName 	string 	`json:"first_name"`
+	LastName 	string 	`json:"last_name"`
+	Email 		string 	`json:"email"`
+	CreatedAt 	string 	`json:"created_at"`
 }
 
 type StaffFKResource struct { // Staff with foreign keys
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	Group 		GroupResource 		`json:"group"`
-	CreatedAt 	string 				`json:"created_at"`
+	Id 			int 			`json:"id"`
+	FirstName 	string 			`json:"first_name"`
+	LastName 	string 			`json:"last_name"`
+	Email 		string 			`json:"email"`
+	Group 		GroupResource 	`json:"group"`
+	CreatedAt 	string 			`json:"created_at"`
 }
 
 // Initialize the staff service

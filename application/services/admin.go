@@ -15,21 +15,21 @@ type Admin struct {
 	corePort 	core.CoreAppPort
 }
 
-type AdminResource struct { // Foreign key resource for admin
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	CreatedAt 	string 				`json:"created_at"`
+type AdminResource struct {
+	Id 			int 	`json:"id"`
+	FirstName 	string 	`json:"first_name"`
+	LastName 	string 	`json:"last_name"`
+	Email 		string 	`json:"email"`
+	CreatedAt 	string 	`json:"created_at"`
 }
 
 type AdminFKResource struct { // Foreign key resource for admin
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	Group 		GroupResource 		`json:"group"`
-	CreatedAt 	string 				`json:"created_at"`
+	Id 			int 			`json:"id"`
+	FirstName 	string 			`json:"first_name"`
+	LastName 	string 			`json:"last_name"`
+	Email 		string 			`json:"email"`
+	Group 		GroupResource 	`json:"group"`
+	CreatedAt 	string 			`json:"created_at"`
 }
 
 // Initialize the admin service

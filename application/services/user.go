@@ -17,21 +17,21 @@ type User struct {
 }
 
 type UserResource struct {
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	CreatedAt 	string 				`json:"created_at"`
+	Id 			int 	`json:"id"`
+	FirstName 	string 	`json:"first_name"`
+	LastName 	string 	`json:"last_name"`
+	Email 		string 	`json:"email"`
+	CreatedAt 	string 	`json:"created_at"`
 }
 
 type UserFKResource struct { // User with foreign keys
-	Id 			int 				`json:"id"`
-	FirstName 	string 				`json:"first_name"`
-	LastName 	string 				`json:"last_name"`
-	Email 		string 				`json:"email"`
-	Group 		GroupResource 		`json:"group"`
-	Account 	AccountResource		`json:"account"`
-	CreatedAt 	string 				`json:"created_at"`
+	Id 			int 			`json:"id"`
+	FirstName 	string 			`json:"first_name"`
+	LastName 	string 			`json:"last_name"`
+	Email 		string 			`json:"email"`
+	Group 		GroupResource 	`json:"group"`
+	Account 	AccountResource	`json:"account"`
+	CreatedAt 	string 			`json:"created_at"`
 }
 
 func (service *Service) NewUserService() *User {

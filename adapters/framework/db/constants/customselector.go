@@ -114,9 +114,9 @@ func (c *CustomSelector) Join(table string, col string, onTable string, onCol st
 // adapter: Database Adapter
 func (c *CustomSelector) Query() ([]map[string]interface{}, error) {
 	var (
-		rows 		*sql.Rows
-		err 		error
-		result 		[]map[string]interface{}
+		rows 	*sql.Rows
+		err 	error
+		result 	[]map[string]interface{}
 	)
 	rows, err = c.adapter.Query(c.String(), c.condition.val)
 	var cols []string
