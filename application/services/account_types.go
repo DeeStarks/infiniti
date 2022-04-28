@@ -91,6 +91,14 @@ func (acctT *AccountType) UpdateAccountType(key string, value interface{}, data 
 	}
 	
 	dbAdapter := acctT.dbPort.NewAccountTypeAdapter()
+	// Check if exists
+	_, err := dbAdapter.Get(key, value)
+	if err != nil {
+		return AccountTypeResource{}, &utils.RequestError{
+			Code: http.StatusNotFound,
+			Err: fmt.Errorf("could not update - account type does not exist"),
+		}
+	}
 	acctTRes, err := dbAdapter.Update(key, value, data)
 	if err != nil {
 		return AccountTypeResource{}, &utils.RequestError{
@@ -130,7 +138,7 @@ func (acct *AccountType) DeleteAccountType(key string, value interface{}) error 
 	if err != nil {
 		return &utils.RequestError{
 			Code: http.StatusNotFound,
-			Err: fmt.Errorf("account type does not exist"),
+			Err: fmt.Errorf("could not delete - account type does not exist"),
 		}
 	}
 	
