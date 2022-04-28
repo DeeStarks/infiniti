@@ -44,6 +44,8 @@ func (r *Router) collectiveRoutes(h *Handler) {
 	subrouter.HandleFunc("/admin/login", h.Login).Name("collective:admin-login")
 	subrouter.HandleFunc("/account-types", h.AccountTypes).Name("collective:account-types")
 	subrouter.HandleFunc("/account-types/{id}", h.SingleAccountType).Name("collective:account-type")
+	subrouter.HandleFunc("/currencies", h.Currencies).Name("collective:currencies")
+	subrouter.HandleFunc("/currencies/{id}", h.SingleCurrency).Name("collective:currency")
 
 
 	// Middleware registration
@@ -99,6 +101,8 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("admin:single-account")
 	subrouter.HandleFunc("/account-types", h.AccountTypes).Name("collective:account-types")
 	subrouter.HandleFunc("/account-types/{id}", h.SingleAccountType).Name("collective:account-type")
+	subrouter.HandleFunc("/currencies", h.Currencies).Name("collective:currencies")
+	subrouter.HandleFunc("/currencies/{id}", h.SingleCurrency).Name("collective:currency")
 
 
 	// Middleware registration

@@ -8,4 +8,5 @@ type AppServicesPort interface {
 	NewAccountService() 	*Account
 	NewAccountTypeService() *AccountType
 	NewUserAuthService()	*UserAuth
+	NewCurrencyService()	*Currency
 }

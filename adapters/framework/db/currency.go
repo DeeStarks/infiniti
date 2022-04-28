@@ -109,8 +109,8 @@ func (mAdapt *CurrencyAdapter) Get(colName string, value interface{}) (*Currency
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol)
-    if err, ok := err.(*pq.Error); ok {
-		return nil, fmt.Errorf("%s", err.Detail)
+    if err != nil {
+		return nil, err
     }
 	return &currency, nil
 }
