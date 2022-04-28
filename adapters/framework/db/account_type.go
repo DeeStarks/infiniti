@@ -108,8 +108,8 @@ func (mAdapt *AccountTypeAdapter) Get(colName string, value interface{}) (*Accou
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&accountType.Id, &accountType.Name)
-    if err, ok := err.(*pq.Error); ok {
-		return nil, fmt.Errorf("%s", err.Detail)
+    if err != nil {
+		return nil, err
     }
 	return &accountType, nil
 }

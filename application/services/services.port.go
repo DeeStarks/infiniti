@@ -6,5 +6,6 @@ type AppServicesPort interface {
 	NewStaffService()		*Staff
 	NewAdminService() 		*Admin
 	NewAccountService() 	*Account
+	NewAccountTypeService() *AccountType
 	NewUserAuthService()	*UserAuth
 }
