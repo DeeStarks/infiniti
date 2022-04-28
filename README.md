@@ -54,6 +54,7 @@ infiniti
 │           └── constants           # Contains reusable constants.
 ├── application                     # Application domain.
 │   ├── core                        # Contains business logic.
+│   │   └── tests                   # Tests for the core domain.
 │   └── services                    # Contains application services
 ├── bin                             # Contains the binary for the app.
 │   └── infiniti
