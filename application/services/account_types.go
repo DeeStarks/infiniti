@@ -30,7 +30,6 @@ func (service *Service) NewAccountTypeService() *AccountType {
 func (acctT *AccountType) GetAccountType(key string, value interface{}) (AccountTypeResource, error) {
 	dbAdapter := acctT.dbPort.NewAccountTypeAdapter()
 	acctTRes, err := dbAdapter.Get(key, value)
-	fmt.Println(acctTRes)
 	if err != nil {
 		return AccountTypeResource{}, &utils.RequestError{
 			Code:	http.StatusNotFound,
@@ -46,11 +45,25 @@ func (acctT *AccountType) GetAccountType(key string, value interface{}) (Account
 }
 
 func (acctT *AccountType) CreateAccountType(data map[string]interface{}) (AccountTypeResource, error) {
-	rsrts := []string{"id"} // Restricted columns to update
+	rsrts := []string{"id"} // Restricted columns to create
 	// Check if the data contains restricted columns
 	// then remove them from the data
 	for _, field := range rsrts {
 		delete(data, field)
+	}
+
+	requires := []string{"name"} // Required fields
+	var notFound string
+	for _, field := range requires {
+		if _, ok := data[field]; !ok {
+			notFound += " ,"+field
+		}
+	}
+	if notFound != "" {
+		return AccountTypeResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("missing fields: %s", notFound[2:]),
+		}
 	}
 	
 	dbAdapter := acctT.dbPort.NewAccountTypeAdapter()
