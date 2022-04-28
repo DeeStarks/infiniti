@@ -26,7 +26,7 @@ func GenerateToken(userId int, userGroupName string, expiresAt int64) (string, e
 		UserId: 		userId,
 		UserGroupName: 	userGroupName,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 	expiresAt, // Token expires in 48 hours
+			ExpiresAt: 	expiresAt,
 			Issuer:   	"Infiniti",
 			IssuedAt:  	time.Now().Unix(),
 		},
@@ -59,7 +59,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a JWT token
-	expiresAt := time.Now().Add(time.Hour * 48)
+	expiresAt := time.Now().Add(time.Hour * 48) // Token expires in 48 hours
 	token, err := GenerateToken(user.Id, user.Group.Name, expiresAt.Unix())
 	if err != nil {
 		res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
@@ -103,7 +103,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	
 		// Create a JWT token
-		expiresAt := time.Now().Add(time.Hour * 48)
+		expiresAt := time.Now().Add(time.Hour * 48) // Token expires in 48 hours
 		token, err := GenerateToken(user.Id, "user", expiresAt.Unix())
 		if err != nil {
 			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
@@ -126,7 +126,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	
 		// Create a JWT token
-		expiresAt := time.Now().Add(time.Hour * 48)
+		expiresAt := time.Now().Add(time.Hour * 48) // Token expires in 48 hours
 		token, err := GenerateToken(staff.Id, "staff", expiresAt.Unix())
 		if err != nil {
 			res, _ := templates.Template(w, http.StatusInternalServerError, "Error generating token", nil)
