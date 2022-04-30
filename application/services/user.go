@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/deestarks/infiniti/adapters/framework/db"
 	"github.com/deestarks/infiniti/application/core"
@@ -87,9 +86,7 @@ func (u *User) CreateUser(data map[string]interface{}) (UserFKResource, error) {
 
 	// Create the user's profile - account
 	// First generate user's account number
-	// This is done by replacing the last characters of a main number with the user's id
-	mainNo := 1220000000
-	accountNo := strconv.Itoa(mainNo+returnedUser.Id) // Type of "account_number" in the database is  a varchar
+	accountNo := u.corePort.MakeAccountNumber(returnedUser.Id)
 
 	// Creating the user's profile
 	returnedAcct, err := u.dbPort.NewAccountAdapter().Create(map[string]interface{}{
