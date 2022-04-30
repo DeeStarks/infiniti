@@ -36,7 +36,7 @@ func UserGuard(handler http.Handler) http.Handler {
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			groupName := claims["group_name"]
-			if groupName != "admin" && groupName != "user" && groupName != "staff" {
+			if groupName != "user" {
 				res, _ := templates.Template(w, http.StatusUnauthorized, "You are not authorized to access this resource", nil)
 				w.Write([]byte(res))
 				return
