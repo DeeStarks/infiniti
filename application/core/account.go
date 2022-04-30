@@ -2,20 +2,22 @@ package core
 
 import "strconv"
 
+const BankNo = 1220000000
+
 func (core *CoreApplication) MakeAccountNumber(id int) string {
-	bankNo := 1220000000
-	accountNo := strconv.Itoa(bankNo+id) 
+	accountNo := strconv.Itoa(BankNo+id) 
 	return accountNo
 }
 
 func (core *CoreApplication) AccountNumberIsValid(accountNo string) bool {
-	bankNo := 1220000000
 	accountNoInt, _ := strconv.Atoi(accountNo)
-	return accountNoInt > bankNo
+	return accountNoInt > BankNo && accountNoInt <= BankNo+9999999
 }
 
 func (core *CoreApplication) GetIdFromAccountNumber(accountNo string) int {
-	bankNo := 1220000000
 	accountNoInt, _ := strconv.Atoi(accountNo)
-	return accountNoInt - bankNo
+	if accountNoInt > BankNo && accountNoInt <= BankNo+9999999 {
+		return accountNoInt - BankNo
+	}
+	return 0
 }
