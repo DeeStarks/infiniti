@@ -138,7 +138,10 @@ func (u *Admin) GetAdmin(key string, value interface{}) (AdminResource, error) {
 
 func (u *Admin) ListAdmins() ([]AdminFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
-	selector := userAdapter.NewUserCustomSelector("groups.name", "admin", "users.id", true).
+	conditions := map[string]interface{}{
+		"groups.name": "admin",
+	}
+	selector := userAdapter.NewUserCustomSelector(conditions, "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
 	data, err := selector.Query()

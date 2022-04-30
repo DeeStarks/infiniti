@@ -11,7 +11,7 @@ type CustomSelector struct {
 	adapter 	*sql.DB 		// Database Adapter
 	tableName 	string			// Base table name (e.g. "users" in "SELECT * FROM users")
 	cols 		[]string		// Columns to select
-	condition 	struct {		// Condition to select (e.g. "WHERE users.id = 1")
+	condition 	[]struct {		// Condition to select (e.g. "WHERE users.id = 1")
 		col 	string			// Column name (e.g. "users.id")
 		val 	interface{}		// Value (e.g. 1)
 	}
@@ -29,13 +29,17 @@ type CustomSelector struct {
 	}
 }
 
-func NewCustomSelector(adapter *sql.DB, tableName string, fields []string, col string, value interface{}, order string, asc bool) *CustomSelector {
+func NewCustomSelector(adapter *sql.DB, tableName string, fields []string, conditions map[string]interface{}, order string, asc bool) *CustomSelector {
 	var cs CustomSelector
 	cs.adapter = adapter
 	cs.tableName = tableName
 	cs.cols = fields
-	cs.condition.col = col
-	cs.condition.val = value
+	for col, val := range conditions {
+		cs.condition = append(cs.condition, struct {
+			col 	string
+			val 	interface{}
+		}{col, val})
+	}
 	cs.order.col = order
 	cs.order.asc = asc
 	return &cs
@@ -59,10 +63,12 @@ func (c *CustomSelector) String() string {
 		`, join.table, join.table, join.col, join.on.table, join.on.col)
 	}
 
-	if c.condition.col != "" {
-		condition = fmt.Sprintf(`
-			WHERE %s = $1
-		`, c.condition.col)
+	if len(c.condition) > 0 {
+		condition = "WHERE "
+		for i, cond := range c.condition {
+			condition += fmt.Sprintf("%s = $%d AND ", cond.col, i+1)
+		}
+		condition = condition[:len(condition)-5] // remove the last " AND "
 	}
 
 	if c.order.col != "" {
@@ -117,7 +123,11 @@ func (c *CustomSelector) Query() ([]map[string]interface{}, error) {
 		err 	error
 		result 	[]map[string]interface{}
 	)
-	rows, err = c.adapter.Query(c.String(), c.condition.val)
+	conditionValues := make([]interface{}, len(c.condition))
+	for i, cond := range c.condition {
+		conditionValues[i] = cond.val
+	}
+	rows, err = c.adapter.Query(c.String(), conditionValues...)
 	var cols []string
 	for _, col := range c.cols {
 		cols = append(cols, strings.Replace(col, ".", "__", -1)) // replace "." with "__"

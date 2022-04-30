@@ -138,7 +138,10 @@ func (u *Staff) GetStaff(key string, value interface{}) (StaffResource, error) {
 
 func (u *Staff) ListStaff() ([]StaffFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
-	selector := userAdapter.NewUserCustomSelector("groups.name", "staff", "users.id", true).
+	conditions := map[string]interface{}{
+		"groups.name": "staff",
+	}
+	selector := userAdapter.NewUserCustomSelector(conditions, "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"})
 	data, err := selector.Query()

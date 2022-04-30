@@ -166,7 +166,10 @@ func (u *User) GetUser(key string, value interface{}) (UserResource, error) {
 
 func (u *User) GetUserWithFK(key string, value interface{}) (UserFKResource, error) { // Include foreign keys (group, account)
 	userAdapter := u.dbPort.NewUserAdapter()
-	selector := userAdapter.NewUserCustomSelector("users."+key, value, "users.id", true).
+	conditions := map[string]interface{}{
+		"users."+key: value,
+	}
+	selector := userAdapter.NewUserCustomSelector(conditions, "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"}).
 		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
@@ -232,7 +235,10 @@ func (u *User) GetUserWithFK(key string, value interface{}) (UserFKResource, err
 
 func (u *User) ListUsers() ([]UserFKResource, error) {
 	userAdapter := u.dbPort.NewUserAdapter()
-	selector := userAdapter.NewUserCustomSelector("groups.name", "user", "users.id", true).
+	conditions := map[string]interface{}{
+		"groups.name": "user",
+	}
+	selector := userAdapter.NewUserCustomSelector(conditions, "users.id", true).
 		Join("user_groups", "user_id", "users", "id", []string{"user_id", "group_id"}).
 		Join("groups", "id", "user_groups", "group_id", []string{"id", "name"}).
 		Join("user_accounts", "user_id", "users", "id", []string{"id", "user_id", "account_type_id", "account_number", "balance", "currency_id"})
