@@ -23,7 +23,7 @@ type TransactionsResource struct {
 	TransactionType		TransactionTypesResource	`json:"transaction_type_id"`
 	Amount				float64						`json:"amount"`
 	SenderId			int							`json:"sender_id"`
-	ReceiverId			int							`json:"receiver_id"`
+	ReceiverId			int							`json:"reciever_id"`
 	Remark				string						`json:"remark"`
 	CreatedAt			time.Time					`json:"created_at"`
 }
@@ -33,7 +33,7 @@ type TransactionsTransferResource struct {
 	UserId				int			`json:"user_id"`
 	Amount				float64		`json:"amount"`
 	SenderId			int			`json:"sender_id"`
-	ReceiverId			int			`json:"receiver_id"`
+	ReceiverId			int			`json:"reciever_id"`
 	Remark				string		`json:"remark"`
 	CreatedAt			time.Time	`json:"created_at"`
 }
@@ -81,7 +81,7 @@ func (trans *Transactions) ListTransactions(userId int) ([]TransactionsResource,
 			"user_id": transaction["user_transactions__user_id"],
 			"amount": transaction["user_transactions__amount"],
 			"sender_id": transaction["user_transactions__sender_id"],
-			"receiver_id": transaction["user_transactions__receiver_id"],
+			"reciever_id": transaction["user_transactions__reciever_id"],
 			"remark": transaction["user_transactions__remark"],
 			"created_at": transaction["user_transactions__created_at"],
 		}
@@ -135,7 +135,7 @@ func (trans *Transactions) GetTransaction(userId int, colName string, colValue i
 		"user_id": transaction["user_transactions__user_id"],
 		"amount": transaction["user_transactions__amount"],
 		"sender_id": transaction["user_transactions__sender_id"],
-		"receiver_id": transaction["user_transactions__receiver_id"],
+		"reciever_id": transaction["user_transactions__reciever_id"],
 		"remark": transaction["user_transactions__remark"],
 		"created_at": transaction["user_transactions__created_at"],
 	}
@@ -157,22 +157,18 @@ func (trans *Transactions) GetTransaction(userId int, colName string, colValue i
 	return trasRes, nil
 }
 
-func (trans *Transactions) Deposit(userId int, data map[string]interface{}) (TransactionsDepositResource, error) {
-	rsrts := []string{"id", "user_id", "sender_id", "receiver_id", "created_at", "transaction_type_id"} // Restricted columns to create
+func (trans *Transactions) Deposit(data map[string]interface{}) (TransactionsDepositResource, error) {
+	restricted := []string{"id", "user_id", "sender_id", "reciever_id", "created_at", "transaction_type_id"} // Restricted columns to create
 	// Check if the data contains restricted columns
 	// then remove them from the data
-	for _, field := range rsrts {
+	for _, field := range restricted {
 		delete(data, field)
 	}
-
-	// Add the userId
-	data["user_id"] = userId
-
-	requires := []string{"amount"} // Required fields
+	requires := []string{"amount", "account_number"} // Required fields
 	var notFound string
 	for _, field := range requires {
 		if _, ok := data[field]; !ok {
-			notFound += " ,"+field
+			notFound += ", "+field
 		}
 	}
 	if notFound != "" {
@@ -181,6 +177,22 @@ func (trans *Transactions) Deposit(userId int, data map[string]interface{}) (Tra
 			Err: fmt.Errorf("missing fields: %s", notFound[2:]),
 		}
 	}
+
+	acctNo, ok := data["account_number"].(string)
+	if !ok {
+		return TransactionsDepositResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("\"account_number\" must be a string"),
+		}
+	}
+	if !trans.corePort.AccountNumberIsValid(acctNo) {
+		return  TransactionsDepositResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("invalid account number"),
+		}
+	}
+	data["user_id"] = trans.corePort.GetIdFromAccountNumber(acctNo)
+	delete(data, "account_number") // Account number won't be used anymore
 
 	// Retrieve transfer type and add to data
 	transTypeAdapter := trans.dbPort.NewTransactionTypeAdapter()
@@ -203,6 +215,8 @@ func (trans *Transactions) Deposit(userId int, data map[string]interface{}) (Tra
 	}
 
 	// Confirm user's account existence
+
+	userId := data["user_id"]
 	acctAdapter := trans.dbPort.NewAccountAdapter()
 	userAcct, err := acctAdapter.Get("user_id", userId)
 	if err != nil {
@@ -221,6 +235,7 @@ func (trans *Transactions) Deposit(userId int, data map[string]interface{}) (Tra
 	transactionAdapter := trans.dbPort.NewTransactionAdapter()
 	transRes, err := transactionAdapter.Create(data)
 	if err != nil {
+		fmt.Println(err.Error())
 		return TransactionsDepositResource{}, &utils.RequestError{
 			Code: http.StatusInternalServerError,
 			Err: err,
@@ -230,14 +245,15 @@ func (trans *Transactions) Deposit(userId int, data map[string]interface{}) (Tra
 	var res TransactionsDepositResource
 	jsonRes, _ := json.Marshal(transRes)
 	json.Unmarshal(jsonRes, &res)
+	fmt.Println(res)
 	return res, nil
 }
 
 func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (TransactionsWithdrawalResource, error) {
-	rsrts := []string{"id", "user_id", "sender_id", "receiver_id", "created_at", "transaction_type_id"} // Restricted columns to create
+	restricted := []string{"id", "user_id", "sender_id", "reciever_id", "created_at", "transaction_type_id"} // Restricted columns to create
 	// Check if the data contains restricted columns
 	// then remove them from the data
-	for _, field := range rsrts {
+	for _, field := range restricted {
 		delete(data, field)
 	}
 
@@ -248,13 +264,22 @@ func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (
 	var notFound string
 	for _, field := range requires {
 		if _, ok := data[field]; !ok {
-			notFound += " ,"+field
+			notFound += ", "+field
 		}
 	}
 	if notFound != "" {
 		return TransactionsWithdrawalResource{}, &utils.RequestError{
 			Code: http.StatusBadRequest,
 			Err: fmt.Errorf("missing fields: %s", notFound[2:]),
+		}
+	}
+
+	// Validate amount
+	amount, ok := data["amount"].(float64)
+	if !ok {
+		return TransactionsWithdrawalResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("\"amount\" must be a floating point number"),
 		}
 	}
 
@@ -268,15 +293,6 @@ func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (
 		}
 	}
 	data["transaction_type_id"] = tt.Id
-
-	// Validate amount
-	amount, ok := data["amount"].(float64)
-	if !ok {
-		return TransactionsWithdrawalResource{}, &utils.RequestError{
-			Code: http.StatusBadRequest,
-			Err: fmt.Errorf("\"amount\" must be a floating point number"),
-		}
-	}
 
 	// Confirm user's account existence
 	acctAdapter := trans.dbPort.NewAccountAdapter()
@@ -317,23 +333,19 @@ func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (
 	return res, nil
 }
 
-func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (TransactionsTransferResource, error) {
-	rsrts := []string{"id", "user_id", "sender_id", "created_at", "transaction_type_id"} // Restricted columns to create
+func (trans *Transactions) Transfer(data map[string]interface{}) (TransactionsTransferResource, error) {
+	restricted := []string{"id", "user_id", "created_at", "reciever_id", "transaction_type_id"} // Restricted columns to create
 	// Check if the data contains restricted columns
 	// then remove them from the data
-	for _, field := range rsrts {
+	for _, field := range restricted {
 		delete(data, field)
 	}
 
-	// Add the userId
-	data["user_id"] = userId
-	data["sender_id"] = userId
-
-	requires := []string{"amount", "receiver_id"} // Required fields
+	requires := []string{"amount", "sender_id", "recipient_account_number"} // Required fields
 	var notFound string
 	for _, field := range requires {
 		if _, ok := data[field]; !ok {
-			notFound += " ,"+field
+			notFound += ", "+field
 		}
 	}
 	if notFound != "" {
@@ -342,6 +354,32 @@ func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (Tr
 			Err: fmt.Errorf("missing fields: %s", notFound[2:]),
 		}
 	}
+
+	// Validate amount
+	amount, ok := data["amount"].(float64)
+	if !ok {
+		return TransactionsTransferResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("\"amount\" must be a floating point number"),
+		}
+	}
+
+	// Confirm receiver's account number validity
+	receiverAcctNo, ok := data["recipient_account_number"].(string)
+	if !ok {
+		return TransactionsTransferResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("\"recipient_account_number\" must be a string"),
+		}
+	}
+	if !trans.corePort.AccountNumberIsValid(receiverAcctNo) {
+		return  TransactionsTransferResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("recipient's account number is not valid"),
+		}
+	}
+	data["reciever_id"] = trans.corePort.GetIdFromAccountNumber(receiverAcctNo)
+	delete(data, "recipient_account_number") // Account number won't be used anymore
 
 	// Retrieve transfer type and add to data
 	transTypeAdapter := trans.dbPort.NewTransactionTypeAdapter()
@@ -357,6 +395,9 @@ func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (Tr
 	// Initialize the account database adapter
 	accountAdapter := trans.dbPort.NewAccountAdapter() 
 	// Get sender and check balance
+	userId := data["sender_id"]
+	data["user_id"] = userId
+
 	senderAcct, err := accountAdapter.Get("user_id", userId)
 	if err != nil {
 		return TransactionsTransferResource{}, &utils.RequestError{
@@ -365,13 +406,6 @@ func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (Tr
 		}
 	}
 	// Compare balance
-	amount, ok := data["amount"].(float64)
-	if !ok {
-		return TransactionsTransferResource{}, &utils.RequestError{
-			Code: http.StatusBadRequest,
-			Err: fmt.Errorf("\"amount\" must be a floating point number"),
-		}
-	}
 	if amount > senderAcct.Balance {
 		return TransactionsTransferResource{}, &utils.RequestError{
 			Code: http.StatusBadRequest,
@@ -380,8 +414,8 @@ func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (Tr
 	}
 
 	// Make sure receiver exists
-	receiver_id := data["receiver_id"]
-	receiverAcct, err := accountAdapter.Get("user_id", receiver_id)
+	reciever_id := data["reciever_id"]
+	receiverAcct, err := accountAdapter.Get("user_id", reciever_id)
 	if err != nil {
 		return TransactionsTransferResource{}, &utils.RequestError{
 			Code: http.StatusBadRequest,
@@ -393,7 +427,7 @@ func (trans *Transactions) Transfer(userId int, data map[string]interface{}) (Tr
 	accountAdapter.Update("user_id", userId, map[string]interface{}{
 		"balance": senderAcct.Balance-amount,
 	})
-	accountAdapter.Update("user_id", receiver_id, map[string]interface{}{
+	accountAdapter.Update("user_id", reciever_id, map[string]interface{}{
 		"balance": receiverAcct.Balance+amount,
 	})
 

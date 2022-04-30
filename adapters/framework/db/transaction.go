@@ -16,7 +16,7 @@ type (
 		TransactionTypeId	int			`json:"transaction_type_id"`
 		Amount				float64		`json:"amount"`
 		SenderId			int			`json:"sender_id"`
-		ReceiverId			int			`json:"receiver_id"`
+		ReceiverId			int			`json:"reciever_id"`
 		Remark				string		`json:"remark"`
 		CreatedAt			time.Time	`json:"created_at"`
 	}
