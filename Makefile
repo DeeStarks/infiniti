@@ -49,8 +49,13 @@ create-migrations:
 migrate-up:
 	@docker-compose exec infiniti-web migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose up
 
+MIGRATE_VERSION := ""
 migrate-down:
-	@docker-compose exec infiniti-web migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose down
+	@if [ -z "$(MIGRATE_VERSION)" ]; then \
+		@docker-compose exec infiniti-web migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose down; \
+	else \
+		docker-compose exec infiniti-web migrate -path /infiniti/adapters/framework/db/migrations -database "postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable" -verbose force $(MIGRATE_VERSION); \
+	fi
 
 
 # CLI app commands

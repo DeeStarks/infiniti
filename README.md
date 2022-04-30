@@ -22,7 +22,7 @@ App will be available at `http://localhost:8000`. `curl http://localhost:8000/ap
 ### Commands
 1. `make create-migrations` - Creates the migrations files for up and down into `adapters/framework/db/migrations`. Default name is a timestamp in format `YYYYMMDDHHMMSS`. To specify a different name, pass it as an argument to the command (e.g. `make create-migrations MIGRATION_NAME=example_name`).
 2. `make migrate-up` - Runs all `*.up.sql` migration files sequentially.
-3. `make migrate-down` - Same as `make migrate-up` but runs `*.down.sql` files in reverse order.
+3. `make migrate-down` - Same as `make migrate-up` but runs `*.down.sql` files in reverse order. To force migrate-down to a specific version - `make migrate-down MIGRATE_VERSION=<version>`.
 4. `make start` - Starts the app.
 5. `make stop` - Stops the app.
 6. `make log` - Shows the app logs.
