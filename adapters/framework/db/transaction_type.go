@@ -108,8 +108,8 @@ func (mAdapt *TransactionTypeAdapter) Get(colName string, value interface{}) (*T
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
 	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&transactionType.Id, &transactionType.Name)
-    if err, ok := err.(*pq.Error); ok {
-		return nil, fmt.Errorf("%s", err.Detail)
+    if err != nil {
+		return nil, err
     }
 	return &transactionType, nil
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/deestarks/infiniti/utils"
+	"github.com/deestarks/infiniti/adapters/framework/db/constants"
 	"github.com/lib/pq"
 )
 
@@ -127,8 +128,8 @@ func (mAdapt *TransactionAdapter) Get(colName string, value interface{}) (*Trans
 		&transaction.Id, &transaction.UserId, &transaction.TransactionTypeId, &transaction.Amount,
 		&transaction.SenderId, &transaction.ReceiverId, &transaction.Remark, &transaction.CreatedAt,
 	)
-    if err, ok := err.(*pq.Error); ok {
-		return nil, fmt.Errorf("%s", err.Detail)
+    if err != nil {
+		return nil, err
     }
 	return &transaction, nil
 }
@@ -183,4 +184,24 @@ func (mAdapt *TransactionAdapter) List() (*[]TransactionModel, error) {
 		transactions = append(transactions, transaction)
 	}
 	return &transactions, nil
+}
+
+// col: column name to select; value: value of the column;
+// order: column name to order by; isAsc: true, if you want to order by ascending.
+func (mAdapt *TransactionAdapter) NewTransactionCustomSelector(conditions map[string]interface{}, order string, isAsc bool) *constants.CustomSelector {
+	return constants.NewCustomSelector(
+		mAdapt.adapter.db,
+		mAdapt.tableName,
+		[]string{
+			fmt.Sprintf("%s.id", mAdapt.tableName),
+			fmt.Sprintf("%s.user_id", mAdapt.tableName),
+			fmt.Sprintf("%s.transaction_type_id", mAdapt.tableName),
+			fmt.Sprintf("%s.amount", mAdapt.tableName),
+			fmt.Sprintf("%s.sender_id", mAdapt.tableName),
+			fmt.Sprintf("%s.reciever_id", mAdapt.tableName),
+			fmt.Sprintf("%s.remark", mAdapt.tableName),
+			fmt.Sprintf("%s.created_at", mAdapt.tableName),
+		},
+		conditions, order, isAsc,
+	)
 }
