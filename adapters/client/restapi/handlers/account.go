@@ -31,7 +31,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 	routeGroup := utils.GetRouteGroup(r)
 
 	switch routeGroup {
-	case "user", "staff":
+	case "user":
 		// Get the user ID from the request context
 		id := r.Context().Value(constants.CTXKey("user_id"))
 		if id == nil {
@@ -40,7 +40,7 @@ func (h *Handler) SingleAccount(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		idVar = fmt.Sprintf("%v", id)
-	case "admin":
+	case "admin", "staff":
 		urlVars := mux.Vars(r) // Get the URL variables
 		id, ok := urlVars["id"] // Get the id variable
 		if !ok {

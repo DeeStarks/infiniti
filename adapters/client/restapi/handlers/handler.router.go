@@ -75,6 +75,10 @@ func (r *Router) staffRoutes(h *Handler) {
 	// Routes here
 	subrouter.HandleFunc("/profile", h.Profile).Name("staff:profile")
 	subrouter.HandleFunc("/profile/change-password", h.ChangePassword).Name("staff:change-password")
+	subrouter.HandleFunc("/users", h.Users).Name("staff:group-users")
+	subrouter.HandleFunc("/users/{id}", h.SingleUser).Name("staff:group-users-single")
+	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("staff:list-accounts")
+	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("staff:single-account")
 
 
 	// Middleware registration
@@ -90,7 +94,6 @@ func (r *Router) adminRoutes(h *Handler) {
 	// Routes here
 	subrouter.HandleFunc("/profile", h.Profile).Name("admin:profile")
 	subrouter.HandleFunc("/profile/change-password", h.ChangePassword).Name("admin:change-password")
-
 	subrouter.HandleFunc("/users", h.Users).Name("admin:group-users")
 	subrouter.HandleFunc("/users/{id}", h.SingleUser).Name("admin:group-users-single")
 	subrouter.HandleFunc("/staff", h.Staff).Name("admin:group-staff")
