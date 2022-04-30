@@ -71,7 +71,7 @@ func (curr *Currency) CreateCurrency(data map[string]interface{}) (CurrencyResou
 	currRes, err := dbAdapter.Create(data)
 	if err != nil {
 		return CurrencyResource{}, &utils.RequestError{
-			Code:	http.StatusNotFound,
+			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf(err.Error()),
 		}
 	}
@@ -104,7 +104,7 @@ func (curr *Currency) UpdateCurrency(key string, value interface{}, data map[str
 	currRes, err := dbAdapter.Update(key, value, data)
 	if err != nil {
 		return CurrencyResource{}, &utils.RequestError{
-			Code:	http.StatusNotFound,
+			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf(err.Error()),
 		}
 	}

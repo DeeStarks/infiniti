@@ -70,7 +70,7 @@ func (acctT *AccountType) CreateAccountType(data map[string]interface{}) (Accoun
 	acctTRes, err := dbAdapter.Create(data)
 	if err != nil {
 		return AccountTypeResource{}, &utils.RequestError{
-			Code:	http.StatusNotFound,
+			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf(err.Error()),
 		}
 	}
@@ -102,7 +102,7 @@ func (acctT *AccountType) UpdateAccountType(key string, value interface{}, data 
 	acctTRes, err := dbAdapter.Update(key, value, data)
 	if err != nil {
 		return AccountTypeResource{}, &utils.RequestError{
-			Code:	http.StatusNotFound,
+			Code:	http.StatusInternalServerError,
 			Err: 	fmt.Errorf(err.Error()),
 		}
 	}
