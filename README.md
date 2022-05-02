@@ -10,13 +10,14 @@ NB: Make sure to have docker installed and running. For docker installation, see
 
 - `git clone https://gihub.com/deestarks/infiniti.git`
 - `cd infiniti`
-- Create a `.env` file in the root directory of the project.
-- Copy the content of the `.env.example` file to the `.env` file. Change the values of the variables according to your choice or leave them as they are. ***(Important: the `RESTAPI_SECRET` variable is important. You can generate one using `make keygen` command)***
+- Create a `.env` file in the root directory of the project and copy the content of the `.env.example` file into it. You can do this from the command line with `cp .env.example .env` in the root directory of the project.
 - `make startd` - To start the application in the background.
-- `make migrate-up` - Migrates the database schema.
+- Generate a key using `make keygen`, copy the key and set it to the `RESTAPI_SECRET` environment variable in the `.env` file created. ***Note: The key is important as it is used to sign JWT tokens.***
+- There's a job to update currency rates in the database every day at 6AM. To make it work, go to [Exchange Rates API](https://www.exchangerate-api.com/) to generate a free API key. Copy your API key, then use it to set the `EXCHANGE_RATE_API_KEY` environment variable in the `.env` file created. ***Note: This key is not important. If it's not set, the job will be skipped.***
+- `make migrate-up` - To migrate database schema.
 - `make cli-createadmin` - To create an admin user.
 
-App will be available at `http://localhost:8000`. `curl http://localhost:8000/api/v1/` will return a welcome message.
+🚀🚀 Did all that without any errors? Great! The application will be available at `http://localhost:8000`. `curl http://localhost:8000/api/v1/` to see a welcome message.
 
 
 ### Commands
@@ -49,10 +50,11 @@ infiniti
 │   │    │   └── middleware         # Contains all middlewares for the REST API.
 │   │    └── cli                    # Contains all CLI app components (e.g. handlers, etc.)
 │   │       └── handlers            # Contains all handlers for the CLI app.
-│   └── framework
-│       └── db                      # Contains all database components (e.g. models, migrations, etc.)
-│           ├── migrations          # Contains all migration files.
-│           └── constants           # Contains reusable constants.
+│   ├── framework
+│   │   └── db                      # Contains all database components (e.g. models, migrations, etc.)
+│   │       ├── migrations          # Contains all migration files.
+│   │       └── constants           # Contains reusable constants.
+│   └── jobs                        # Job queuing layer.
 ├── application                     # Application domain.
 │   ├── core                        # Contains business logic.
 │   │   └── tests                   # Tests for the core domain.
