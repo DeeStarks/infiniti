@@ -6,4 +6,5 @@ type CoreAppPort interface {
 	MakeAccountNumber(int) 				string
 	AccountNumberIsValid(string) 		bool
 	GetIdFromAccountNumber(string) 		int
+	ConvertCurrency(amount, fromConversionRate, toConversionRate float64)	float64
 }
