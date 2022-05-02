@@ -8,8 +8,11 @@ db-shell:
 		docker-compose exec infiniti-db psql -U $(DB_USER) -d $(DB_NAME); \
 		echo "Database shell closed!\n$(LINE_THROUGH)"
 
-start:
+startd:
 	@docker-compose up -d
+
+start:
+	@docker-compose up
 
 logs:
 	@docker-compose logs
