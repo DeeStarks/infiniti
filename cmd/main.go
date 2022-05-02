@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/deestarks/infiniti/adapters/framework/db"
+	"github.com/deestarks/infiniti/adapters/jobs"
 	"github.com/deestarks/infiniti/application"
 	"github.com/deestarks/infiniti/cmd/apps/cli"
 	"github.com/deestarks/infiniti/cmd/apps/restapi"
@@ -33,6 +34,10 @@ func main() {
 
 	// Initializing the Application
 	app := application.NewApplication(dbAdapter)
+
+	// Run jobs
+	jobAdapter := jobs.NewJobInitializer(app.Services)
+	jobAdapter.Init()
 
 	// Starting the client app
 	switch client {
