@@ -423,12 +423,35 @@ func (trans *Transactions) Transfer(data map[string]interface{}) (TransactionsTr
 		}
 	}
 
+	// Exchange currency
+	currencyAdapter := trans.dbPort.NewCurrencyAdapter()
+	// Sender's currency
+	senderCurrency, err := currencyAdapter.Get("id", senderAcct.CurrencyId)
+	if err != nil {
+		return TransactionsTransferResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("sender's currency unknown"),
+		}
+	}
+	// Receiver's currency
+	receiverCurrency, err := currencyAdapter.Get("id", receiverAcct.CurrencyId)
+	if err != nil {
+		return TransactionsTransferResource{}, &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("receiver's currency unknown"),
+		}
+	}
+	// Exchange amount
+	exchangedAmount := trans.corePort.ConvertCurrency(amount, senderCurrency.ConversionRateToUSD, receiverCurrency.ConversionRateToUSD)
+
 	// Make transfer
+	// Deduct the amount from sender's account balance
 	accountAdapter.Update("user_id", userId, map[string]interface{}{
 		"balance": senderAcct.Balance-amount,
 	})
+	// Add the converted amount to receiver's account balance
 	accountAdapter.Update("user_id", reciever_id, map[string]interface{}{
-		"balance": receiverAcct.Balance+amount,
+		"balance": receiverAcct.Balance+exchangedAmount,
 	})
 
 	// Save to transactions
