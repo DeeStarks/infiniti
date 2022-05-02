@@ -47,15 +47,15 @@ func NewJobInitializer(port services.AppServicesPort) *JobInitializer {
 				scheduler	*gocron.Scheduler
 			}
 
-			func (adapter JobAdapter) NewYourJobName() *YourJobName {
-				return &YourJobName{
-					Add: true,
+			func (adapter *JobAdapter) NewYourJobName() YourJobName {
+				return YourJobName{
+					Add: true, // Set to false if the implementation is still being worked on, or to dequeue
 					appPort: adapter.appPort,
 					scheduler: adapter.scheduler,
 				}
 			}
 
-			func (job *YourJobName) Run() {
+			func (job YourJobName) Run() {
 				// Your job logic here
 			}
 
