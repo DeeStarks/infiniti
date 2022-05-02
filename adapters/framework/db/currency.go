@@ -9,9 +9,10 @@ import (
 
 type (
 	CurrencyModel struct {
-		Id		int		`json:"id"`
-		Name	string	`json:"name"`
-		Symbol	string	`json:"symbol"`
+		Id					int		`json:"id"`
+		Name				string	`json:"name"`
+		Symbol				string	`json:"symbol"`
+		ConversionRateToUSD	float64	`json:"conversion_rate_to_usd"`
 	}
 	
 	CurrencyAdapter struct {
@@ -45,10 +46,10 @@ func (mAdapt *CurrencyAdapter) Create(data map[string]interface{}) (*CurrencyMod
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s ( %s ) VALUES ( %s )
-		RETURNING id, name, symbol
+		RETURNING id, name, symbol, conversion_rate_to_usd
 	`, mAdapt.tableName, colStr, utils.CreatePlaceholder(len(valArr)))
 
-	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol)
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
     }
@@ -68,12 +69,12 @@ func (mAdapt *CurrencyAdapter) Update(col string, colValue interface{}, data map
 	query := fmt.Sprintf(`
 		UPDATE %s SET %s
 		WHERE %s = $%d
-		RETURNING id, name, symbol
+		RETURNING id, name, symbol, conversion_rate_to_usd
 	`, mAdapt.tableName, utils.CreateSetConditions(mToS), col, len(data)+1)
 
 	valArr = append(valArr, colValue)
 
-	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol)
+	err := mAdapt.adapter.db.QueryRow(query, valArr...).Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
     }
@@ -88,9 +89,9 @@ func (mAdapt *CurrencyAdapter) Delete(colName string, value interface{}) (*Curre
 	query := fmt.Sprintf(`
 		DELETE FROM %s
 		WHERE %s = $1
-		RETURNING id, name, symbol
+		RETURNING id, name, symbol, conversion_rate_to_usd
 	`, mAdapt.tableName, colName)
-	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol)
+	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
     }
@@ -104,11 +105,11 @@ func (mAdapt *CurrencyAdapter) Get(colName string, value interface{}) (*Currency
 	)
 
 	query := fmt.Sprintf(`
-		SELECT id, name, symbol
+		SELECT id, name, symbol, conversion_rate_to_usd
 		FROM %s
 		WHERE %s = $1
 	`, mAdapt.tableName, colName)
-	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol)
+	err = mAdapt.adapter.db.QueryRow(query, value).Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err != nil {
 		return nil, err
     }
@@ -120,7 +121,10 @@ func (mAdapt *CurrencyAdapter) Filter(colName string, value interface{}) (*[]Cur
 		currencies	[]CurrencyModel
 		err			error
 	)
-	query := fmt.Sprintf("SELECT id, name, symbol FROM %s WHERE %s = $1", mAdapt.tableName, colName)
+	query := fmt.Sprintf(`
+		SELECT id, name, symbol, conversion_rate_to_usd
+		FROM %s WHERE %s = $1
+	`, mAdapt.tableName, colName)
 	rows, err := mAdapt.adapter.db.Query(query, value)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
@@ -129,7 +133,7 @@ func (mAdapt *CurrencyAdapter) Filter(colName string, value interface{}) (*[]Cur
 
 	for rows.Next() {
 		var currency CurrencyModel
-		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol)
+		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
     }
@@ -143,7 +147,10 @@ func (mAdapt *CurrencyAdapter) List() (*[]CurrencyModel, error) {
 		currencies	[]CurrencyModel
 		err			error
 	)
-	query := fmt.Sprintf("SELECT id, name, symbol FROM %s", mAdapt.tableName)
+	query := fmt.Sprintf(`
+		SELECT id, name, symbol, conversion_rate_to_usd
+		FROM %s`, 
+	mAdapt.tableName)
 	rows, err := mAdapt.adapter.db.Query(query)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
@@ -152,7 +159,7 @@ func (mAdapt *CurrencyAdapter) List() (*[]CurrencyModel, error) {
 
 	for rows.Next() {
 		var currency CurrencyModel
-		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol)
+		err := rows.Scan(&currency.Id, &currency.Name, &currency.Symbol, &currency.ConversionRateToUSD)
     if err, ok := err.(*pq.Error); ok {
 		return nil, fmt.Errorf("%s", err.Detail)
     }

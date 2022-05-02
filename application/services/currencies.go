@@ -16,9 +16,10 @@ type Currency struct {
 }
 
 type CurrencyResource struct {
-	Id		int		`json:"id"`
-	Name	string	`json:"name"`
-	Symbol 	string	`json:"symbol"`
+	Id					int		`json:"id"`
+	Name				string	`json:"name"`
+	Symbol 				string	`json:"symbol"`
+	ConversionRateToUSD	float64 `json:"conversion_rate_to_usd"`
 }
 
 func (service *Service) NewCurrencyService() *Currency {
@@ -53,7 +54,7 @@ func (curr *Currency) CreateCurrency(data map[string]interface{}) (CurrencyResou
 		delete(data, field)
 	}
 
-	requires := []string{"name", "symbol"} // Required fields
+	requires := []string{"name", "symbol", "conversion_rate_to_usd"} // Required columns to create
 	var notFound string
 	for _, field := range requires {
 		if _, ok := data[field]; !ok {
