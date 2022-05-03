@@ -17,7 +17,7 @@ type ExchangeRateUpdate struct {
 	scheduler	*gocron.Scheduler
 }
 
-func (adapter *JobAdapter) ExchangeRateUpdate() ExchangeRateUpdate {
+func (adapter *JobAdapter) NewExchangeRateUpdate() ExchangeRateUpdate {
 	// Use the API key to determine if the job should be added to the job queue
 	var hasKey = true
 	if config.GetExchangeRateAPIKey() == "" {
