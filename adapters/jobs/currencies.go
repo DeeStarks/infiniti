@@ -38,7 +38,7 @@ type ExchangeRateResource struct {
 }
 
 func (job ExchangeRateUpdate) Run() {
-	job.scheduler.Every(1).Days().At("06:00").Do(func() { // Run every day at 6:00 AM
+	job.scheduler.Cron("0 6 * * *").Do(func() { // Run every day at 6:00 AM
 		var rates ExchangeRateResource
 
 		// Get the exchange rates
