@@ -27,7 +27,7 @@ NB: Make sure to have docker and docker-compose installed and running. For docke
 4. `make startd` - Starts the application in the background.
 5. `make start` - Starts the application in the foreground to view logs live.
 6. `make stop` - Stops the app.
-7. `make log` - Shows the app logs.
+7. `make logs` - Shows the app logs.
 8. `make build` - Builds the app into the `bin/infiniti` binary.
 9. `make install` - Installs all uninstalled dependencies found in the app.
 10. `make install PKG=<dependency>` - Installs a specific dependency. (e.g. `make install PKG=github.com/gorilla/mux`)
