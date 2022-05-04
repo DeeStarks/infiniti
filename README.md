@@ -1,4 +1,4 @@
-# INFINITI (in progress)
+# INFINITI
 
 Infiniti is a core banking system, designed on the basis of the Hexagonal Architecture.
 
