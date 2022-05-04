@@ -10,7 +10,6 @@ import (
 	"github.com/go-co-op/gocron"
 )
 
-// The use of "JobAdapter" in "JobInitializer" is a way to avoid the Init() method from calling itself if the same struct is used to initialize and run the jobs, which will cause a stack overflow.
 type JobInitializer struct {
 	adapter	*JobAdapter
 }
@@ -18,10 +17,6 @@ type JobInitializer struct {
 type JobAdapter struct {
 	appPort		services.AppServicesPort
 	scheduler	*gocron.Scheduler
-}
-
-func (i *JobInitializer) NewJobAdapter() *JobAdapter {
-	return i.adapter
 }
 
 func NewJobInitializer(port services.AppServicesPort) *JobInitializer {
