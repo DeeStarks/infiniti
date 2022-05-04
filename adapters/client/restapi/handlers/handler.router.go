@@ -107,13 +107,15 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter.HandleFunc("/admins/{id}", h.SingleAdmin).Name("admin:group-admin-single")
 	subrouter.HandleFunc("/accounts", h.ListAccounts).Name("admin:list-accounts")
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("admin:single-account")
-	subrouter.HandleFunc("/account-types", h.AccountTypes).Name("collective:account-types")
-	subrouter.HandleFunc("/account-types/{id}", h.SingleAccountType).Name("collective:account-type")
-	subrouter.HandleFunc("/currencies", h.Currencies).Name("collective:currencies")
-	subrouter.HandleFunc("/currencies/{id}", h.SingleCurrency).Name("collective:currency")
+	subrouter.HandleFunc("/account-types", h.AccountTypes).Name("admin:account-types")
+	subrouter.HandleFunc("/account-types/{id}", h.SingleAccountType).Name("admin:account-type")
+	subrouter.HandleFunc("/currencies", h.Currencies).Name("admin:currencies")
+	subrouter.HandleFunc("/currencies/{id}", h.SingleCurrency).Name("admin:currency")
 	subrouter.HandleFunc("/deposit", h.Deposit).Name("admin:deposit")
 	subrouter.HandleFunc("/transfer", h.Transfer).Name("admin:transfer")
 	subrouter.HandleFunc("/withdraw", h.Withdraw).Name("admin:withdraw")
+	subrouter.HandleFunc("/transaction-types", h.TransactionTypes).Name("admin:transaction-types")
+	subrouter.HandleFunc("/transaction-types/{id}", h.SingleTransactionType).Name("admin:transaction-type")
 
 
 	// Middleware registration
