@@ -249,22 +249,43 @@ func (trans *Transactions) Deposit(data map[string]interface{}) (TransactionsDep
 	return res, nil
 }
 
-func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (TransactionsWithdrawalResource, error) {
-	restricted := []string{"id", "user_id", "sender_id", "reciever_id", "created_at", "transaction_type_id"} // Restricted columns to create
+func (trans *Transactions) Withdrawal(data map[string]interface{}) (TransactionsWithdrawalResource, error) {
+	restricted := []string{"id", "sender_id", "reciever_id", "created_at", "transaction_type_id"} // Restricted columns to create
 	// Check if the data contains restricted columns
 	// then remove them from the data
 	for _, field := range restricted {
 		delete(data, field)
 	}
 
-	// Add the userId
-	data["user_id"] = userId
+	// Allow the use of both user_id and account_number
+	// If user_id is passed, account_number is ignored
+	if _, ok := data["user_id"]; ok {
+		delete(data, "account_number")
+	}
 
-	requires := []string{"amount"} // Required fields
+	if _, ok := data["account_number"]; ok {
+		// Retrieve user_id from account_number
+		acctNo, ok := data["account_number"].(string)
+		if isValid := trans.corePort.AccountNumberIsValid(acctNo); !isValid || !ok {
+			return TransactionsWithdrawalResource{}, &utils.RequestError{
+				Code: http.StatusBadRequest,
+				Err: fmt.Errorf("'account_number' not valid"),
+			}
+		}
+		data["user_id"] = trans.corePort.GetIdFromAccountNumber(acctNo)
+		delete(data, "account_number")
+	}
+
+	requires := []string{"amount", "user_id"} // Required fields
 	var notFound string
 	for _, field := range requires {
 		if _, ok := data[field]; !ok {
-			notFound += ", "+field
+			if field == "user_id" { 
+				// Make sure either user_id or account_number is passed
+				notFound += ", "+field+" or account_number"
+			} else {
+				notFound += ", "+field
+			}
 		}
 	}
 	if notFound != "" {
@@ -295,6 +316,8 @@ func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (
 	data["transaction_type_id"] = tt.Id
 
 	// Confirm user's account existence
+	userId := data["user_id"]
+
 	acctAdapter := trans.dbPort.NewAccountAdapter()
 	userAcct, err := acctAdapter.Get("user_id", userId)
 	if err != nil {
@@ -313,9 +336,15 @@ func (trans *Transactions) Withdrawal(userId int, data map[string]interface{}) (
 	}
 
 	// Withdraw from balance
-	acctAdapter.Update("user_id", userId, map[string]interface{}{
+	_, err = acctAdapter.Update("user_id", userId, map[string]interface{}{
 		"balance": userAcct.Balance-amount,
 	})
+	if err != nil {
+		return TransactionsWithdrawalResource{}, &utils.RequestError{
+			Code: http.StatusInternalServerError,
+			Err: err,
+		}
+	}
 
 	// Create transaction data
 	transactionAdapter := trans.dbPort.NewTransactionAdapter()

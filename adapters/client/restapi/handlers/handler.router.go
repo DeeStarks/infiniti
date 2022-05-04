@@ -61,6 +61,7 @@ func (r *Router) userRoutes(h *Handler) {
 	subrouter.HandleFunc("/profile", h.Profile).Name("user:profile")
 	subrouter.HandleFunc("/profile/change-password", h.ChangePassword).Name("user:change-password")
 	subrouter.HandleFunc("/transfer", h.Transfer).Name("user:transfer")
+	subrouter.HandleFunc("/withdraw", h.Withdraw).Name("user:withdraw")
 
 
 	// Middleware registration
@@ -82,6 +83,7 @@ func (r *Router) staffRoutes(h *Handler) {
 	subrouter.HandleFunc("/accounts/{id}", h.SingleAccount).Name("staff:single-account")
 	subrouter.HandleFunc("/deposit", h.Deposit).Name("staff:deposit")
 	subrouter.HandleFunc("/transfer", h.Transfer).Name("staff:transfer")
+	subrouter.HandleFunc("/withdraw", h.Withdraw).Name("staff:withdraw")
 
 
 	// Middleware registration
@@ -111,6 +113,7 @@ func (r *Router) adminRoutes(h *Handler) {
 	subrouter.HandleFunc("/currencies/{id}", h.SingleCurrency).Name("collective:currency")
 	subrouter.HandleFunc("/deposit", h.Deposit).Name("admin:deposit")
 	subrouter.HandleFunc("/transfer", h.Transfer).Name("admin:transfer")
+	subrouter.HandleFunc("/withdraw", h.Withdraw).Name("admin:withdraw")
 
 
 	// Middleware registration
