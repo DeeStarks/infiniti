@@ -135,11 +135,24 @@ func (tt *TransactionTypes) ListTransactionTypes() ([]TransactionTypesResource, 
 func (tt *TransactionTypes) DeleteTransactionType(colName string, colValue interface{}) error {
 	adapter := tt.dbPort.NewTransactionTypeAdapter()
 	// Check if exists
-	_, err := adapter.Get(colName, colValue)
+	transType, err := adapter.Get(colName, colValue)
 	if err != nil {
 		return &utils.RequestError{
 			Code: http.StatusNotFound,
 			Err: fmt.Errorf("could not delete - transaction type does not exist"),
+		}
+	}
+
+	// Don't allow deletion of "deposit", "withdrawal" and "transfer"
+	undeletables := map[string]bool{
+		"deposit": true,
+		"withdrawal": true,
+		"transfer": true,
+	}
+	if undeletables[transType.Name] {
+		return &utils.RequestError{
+			Code: http.StatusBadRequest,
+			Err: fmt.Errorf("transaction type of '%s' cannot be deleted", transType.Name),
 		}
 	}
 	
